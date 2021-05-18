@@ -74,6 +74,7 @@ J-Link>exit
     newt target set rr_node app=apps/rr-node
     newt target set rr_node bsp=@decawave-uwb-core/hw/bsp/dwm1001
     newt target set rr_node build_profile=optimized
+    newt target amend rr_node cflags=-Wno-error
     newt run rr_node 0
     
 ```
@@ -85,6 +86,7 @@ J-Link>exit
     newt target set rr_tag app=apps/rr-node
     newt target set rr_tag bsp=@decawave-uwb-core/hw/bsp/dwm1001
     newt target set rr_tag build_profile=optimized
+    newt target amend rr_tag cflags=-Wno-error
 ```
 
 4. Build and run on relevent target
