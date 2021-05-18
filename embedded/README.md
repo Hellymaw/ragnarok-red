@@ -48,8 +48,16 @@ To retrieve all project repository dependencies. Then:
 (executed from the embedded directory)
 
 Erase board flash: 
+This required NRF CLI tools
 ```
     $ nrfjprog -f NRF52 -e
+```
+alternatively do
+
+```
+$ JLinkExe -device nRF52 -speed 4000 -if SWD
+J-Link>erase
+J-Link>exit
 ```
 
 ```
