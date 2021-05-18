@@ -31,11 +31,26 @@ After cloning the repositry, call
 ```
     $ newt upgrade
 ```
+### Applying Patches
 
+```
+    $ repos/decawave-uwb-core/setup.sh
+    $ newt upgrade
+    
+    cd repos/apache-mynewt-core/
+    git apply ../decawave-uwb-core/patches/apache-mynewt-core/mynewt_1_7_0_*
+    cd -
+```
 To retrieve all project repository dependencies. Then:
+
 
 1. Build bootloader application for the DWM1001-dev target.
 (executed from the embedded directory)
+
+Erase board flash: 
+```
+    $ nrfjprog -f NRF52 -e
+```
 
 ```
     newt target create dwm1001_boot
@@ -43,6 +58,7 @@ To retrieve all project repository dependencies. Then:
     newt target set dwm1001_boot bsp=@decawave-uwb-core/hw/bsp/dwm1001
     newt target set dwm1001_boot build_profile=optimized
     newt build dwm1001_boot
+    newt load dwm1001_boot
 ```
 
 2. Setup target for rr-node
@@ -53,6 +69,7 @@ To retrieve all project repository dependencies. Then:
     newt target set rr_node bsp=@decawave-uwb-core/hw/bsp/dwm1001
     newt target set rr_node build_profile=optimized
     newt run rr_node 0
+    
 ```
 
 3. Setup target for rr-tag
