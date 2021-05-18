@@ -43,7 +43,6 @@ To retrieve all project repository dependencies. Then:
     newt target set dwm1001_boot bsp=@decawave-uwb-core/hw/bsp/dwm1001
     newt target set dwm1001_boot build_profile=optimized
     newt build dwm1001_boot
-    newt load dwm1001_boot
 ```
 
 2. Setup target for rr-node
@@ -52,7 +51,7 @@ To retrieve all project repository dependencies. Then:
     newt target create rr_node
     newt target set rr_node app=apps/rr-node
     newt target set rr_node bsp=@decawave-uwb-core/hw/bsp/dwm1001
-    newt target set rr_node build_profile=debug
+    newt target set rr_node build_profile=optimized
     newt run rr_node 0
 ```
 
@@ -62,7 +61,7 @@ To retrieve all project repository dependencies. Then:
     newt target create rr_tag
     newt target set rr_tag app=apps/rr-node
     newt target set rr_tag bsp=@decawave-uwb-core/hw/bsp/dwm1001
-    newt target set rr_tag build_profile=debug
+    newt target set rr_tag build_profile=optimized
 ```
 
 4. Build and run on relevent target
