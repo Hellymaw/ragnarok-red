@@ -23,6 +23,7 @@ project.repositories:
     - apache-mynewt-core
     - apache-mynewt-nimble
     - decawave-uwb-core
+    - decawave-uwb-apps
 
 
 # Use github's distribution mechanism for core ASF libraries.
@@ -46,3 +47,10 @@ repository.decawave-uwb-core:
     user: decawave
     repo: uwb-core
     url: 'git@github.com:Decawave/uwb-core.git'
+
+repository.decawave-uwb-apps:
+    type: git
+    vers: 0-dev
+    user: decawave
+    repo: uwb-apps
+    url: 'git@github.com:Decawave/uwb-apps.git'

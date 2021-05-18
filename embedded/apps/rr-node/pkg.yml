@@ -30,7 +30,7 @@ pkg.keywords:
 # Might not all be true
 pkg.deps: 
     - "@apache-mynewt-core/kernel/os"
-    - "@apache-mynewt-code/hw/hal"
+    - "@apache-mynewt-core/hw/hal"
     - "@mcuboot/boot/bootutil"
     - "@apache-mynewt-core/sys/id"
     - "@apache-mynewt-core/sys/shell"
