@@ -43,10 +43,6 @@ After cloning the repositry, call
 ```
 To retrieve all project repository dependencies. Then:
 
-
-1. Build bootloader application for the DWM1001-dev target.
-(executed from the embedded directory)
-
 Erase board flash: 
 This required NRF CLI tools
 ```
@@ -59,6 +55,8 @@ $ JLinkExe -device nRF52 -speed 4000 -if SWD
 J-Link>erase
 J-Link>exit
 ```
+1. Build bootloader application for the DWM1001-dev target.
+(executed from the embedded directory)
 
 ```
     newt target create dwm1001_boot
