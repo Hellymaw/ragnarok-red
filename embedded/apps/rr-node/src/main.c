@@ -16,22 +16,31 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+/**
+ ************************************************************************
+ * @file main.c
+ * @author Wilfred MK
+ * @date 19.05.2021 (Last Updated)
+ * @brief Main entry this, initialises aux tasks. 
+ **********************************************************************
+ **/
 
 #include <assert.h>
 #include <string.h>
-
+#include <stdio.h>
+#include <math.h>
 #include "sysinit/sysinit.h"
 #include "os/os.h"
 #include "bsp/bsp.h"
+#include "imgmgr/imgmgr.h"
 #include "hal/hal_gpio.h"
+#include "hal/hal_bsp.h"
+#include <hal/hal_system.h>
 #ifdef ARCH_sim
 #include "mcu/mcu_sim.h"
 #endif
 
-static volatile int g_task1_loops;
-
-/* For LED toggling */
-int g_led_pin;
+#include "rr_node.h"
 
 /**
  * main
@@ -46,25 +55,16 @@ main(int argc, char **argv)
 {
     int rc;
 
-#ifdef ARCH_sim
-    mcu_sim_parse_args(argc, argv);
-#endif
-
     sysinit();
 
-    g_led_pin = LED_BLINK_PIN;
-    hal_gpio_init_out(g_led_pin, 1);
+    //Init blink led task
+    os_task_init(&led_task_init, "blink_led_task", blink_led_task, NULL, LED_TASK_PRIOR,
+                 OS_WAIT_FOREVER, led_task_stack, LED_TASK_STACK_SIZE);
 
     while (1) {
-        ++g_task1_loops;
-
         /* Wait one second */
         os_time_delay(OS_TICKS_PER_SEC);
-
-        /* Toggle the LED */
-        hal_gpio_toggle(g_led_pin);
     }
     assert(0);
-
     return rc;
 }
