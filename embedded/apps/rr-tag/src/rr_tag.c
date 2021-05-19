@@ -80,21 +80,20 @@ struct uwbcfg_cbs uwb_cb = {
 
 
 /**
- * @brief Custom function to handle a tag packet, this is called in rtdoa_backhaul.c
- *          to get backend data over to this file. Yes the code be sphegett, thats how
- *          they wrote it.
+ * @brief Function to handle a tag packet, this is called in rtdoa_backhaul.c
+ *          to get backend data over to this file.
+ *        See, readme.md for configuring respective lib file.
  * 
  * @param p 
  */
 void rr_tag_packet(struct rtdoabh_tag_results_pkg *p) {
     //TODO Figure out wtf is going on with this ranging nonsense
-
     for (int i=0;i<p->num_ranges;i++) {
         struct rtdoabh_range_data *r = &p->ranges[i];
         int sign = (r->diff_dist_mm > 0);
         int ddist_m  = r->diff_dist_mm/1000;
         int ddist_mm = abs(r->diff_dist_mm - ddist_m*1000);
-        printf("Packet [%d] -> %s%d.%03d\n", i,(sign)?"":"-", abs(ddist_m), ddist_mm);
+        printf("Node [%x] -> %s%d.%03d\n", r->anchor_addr,(sign)?"":"-", abs(ddist_m), ddist_mm);
     }
 }
 
