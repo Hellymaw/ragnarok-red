@@ -8,26 +8,7 @@ which Root element has following models
 
 - Generic OnOff Server
 - Generic OnOff Client
-- Generic Level Server
-- Generic Level Client
-- Generic Default Transition Time Server
-- Generic Default Transition Time Client
-- Generic Power OnOff Server
-- Generic Power OnOff Setup Server
-- Generic Power OnOff Client
-- Light Lightness Server
-- Light Lightness Setup Server
-- Light Lightness Client
-- Light CTL Server
-- Light CTL Setup Server
-- Light CTL Client
 - Vendor Model
-
-And Secondary element has following models
-
-- Generic Level Server
-- Generic Level Client
-- Light CTL Temperature Server
 
 Prior to provisioning, an unprovisioned beacon is broadcast that contains
 a unique UUID. Each button controls the state of its
@@ -35,14 +16,11 @@ corresponding LED and does not initiate any mesh activity
 
 ##### Associations of Models with hardware
 ************************************
-For the nRF52840-PDK board, these are the model associations:
+
+For the dwm1001-dev board, these are the model associations:
 
 * LED1 is associated with generic OnOff Server's state which is part of Root element
-* LED2 is associated with Vendor Model which is part of Root element
-* LED3 is associated with generic Level (ROOT) / Light Lightness Actual value
-* LED4 is associated with generic Level (Secondary) / Light CTL Temperature value
-* Button1 and Button2 are associated with gen. OnOff Client or Vendor Model which is part of Root element
-* Button3 and Button4 are associated with gen. Level Client / Light Lightness Client / Light CTL Client which is part of Root element
+* Button1 is associated with gen. OnOff Client which is part of Root element
 
 States of Servers are bounded as per Bluetooth SIG Mesh Model Specification v1.0
 
@@ -53,8 +31,7 @@ also publish its relevant status.
 
 ##### Requirements
 ************
-This sample has been tested on the Nordic nRF52840-PDK board, but would
-likely also run on the nrf52_pca10040 board.
+Part of this sample (persistent mesh config settings) has been tested on the dwm1001-dev board.
 
 
 ##### Running
@@ -62,10 +39,7 @@ likely also run on the nrf52_pca10040 board.
 
 Provisioning is done using the BlueZ meshctl utility. In this example, we'll use meshctl commands to bind:
 
-- Button1, Button2, and LED1 to application key 1. It then configures Button1 and Button2
-  to publish to group 0xC000 and LED1 to subscribe to that group.
-- Button3, Button4, and LED3 to application key 1. It then configures Button3 and Button4
-  to publish to group 0xC000 and LED3 to subscribe to that group.
+- Button1 and LED1 to application key 1. It then configures Button1 publish to group 0xC000 and LED1 to subscribe to that group.
 
 ```
 discover-unprovisioned on
@@ -75,12 +49,8 @@ target 0100
 appkey-add 1
 bind 0 1 1000
 bind 0 1 1001
-bind 0 1 1002
-bind 0 1 1003
 sub-add 0100 c000 1000
-sub-add 0100 c000 1002
 pub-set 0100 c000 1 0 5 1001
-pub-set 0100 c000 1 0 5 1003
 ```
 
 The meshctl utility maintains a persistent JSON database containing
