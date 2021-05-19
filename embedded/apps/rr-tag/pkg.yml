@@ -19,7 +19,7 @@
 
 pkg.name: apps/rr-tag
 pkg.type: app
-pkg.description: Ultra wide beam indoor positioning system tag application
+pkg.description: Ultra wide beam indoor positioning system node application
 pkg.author: ""
 pkg.homepage: "https://github.com/Hellymaw/ragnarok-red/wiki"
 pkg.keywords:
@@ -30,7 +30,7 @@ pkg.keywords:
 # Might not all be true
 pkg.deps: 
     - "@apache-mynewt-core/kernel/os"
-    - "@apache-mynewt-code/hw/hal"
+    - "@apache-mynewt-core/hw/hal"
     - "@mcuboot/boot/bootutil"
     - "@apache-mynewt-core/sys/id"
     - "@apache-mynewt-core/sys/shell"
