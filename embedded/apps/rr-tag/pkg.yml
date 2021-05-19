@@ -6,7 +6,7 @@
 # to you under the Apache License, Version 2.0 (the
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
-# 
+#
 #  http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing,
@@ -19,16 +19,14 @@
 
 pkg.name: apps/rr-tag
 pkg.type: app
-pkg.description: Ultra wide beam indoor positioning system node application
-pkg.author: ""
-pkg.homepage: "https://github.com/Hellymaw/ragnarok-red/wiki"
+pkg.description: "Rtdoa tag application"
+pkg.author: "UWB Core <uwbcore@gmail.com>"
+pkg.homepage: "https://decawave.com/"
 pkg.keywords:
-    - dwm1001-dev
-    - rtdoa
-    - blemesh
+  - dw1000
+  - rtdoa
 
-# Might not all be true
-pkg.deps: 
+pkg.deps:
     - "@apache-mynewt-core/kernel/os"
     - "@apache-mynewt-core/hw/hal"
     - "@mcuboot/boot/bootutil"
@@ -39,27 +37,17 @@ pkg.deps:
     - "@apache-mynewt-core/sys/console/full"
     - "@apache-mynewt-core/mgmt/imgmgr"
     - "@apache-mynewt-core/mgmt/newtmgr"
-    - "@apache-mynewt-nimble/nimble/controller"
-    - "@apache-mynewt-nimble/nimble/host"
-    - "@apache-mynewt-nimble/nimble/host/services/gap"
-    - "@apache-mynewt-nimble/nimble/host/services/gatt"
-    - "@apache-mynewt-nimble/nimble/transport/ram"
     - "@decawave-uwb-core/lib/dsp"
     - "@decawave-uwb-core/lib/tdma"
     - "@decawave-uwb-core/lib/uwb_ccp"
-    - "@decawave-uwb-core/lib/uwb_rng"
-    - "@decawave-uwb-core/lib/nrng"
-    - "@decawave-uwb-core/lib/rtdoa_node"
-    - "@decawave-uwb-core/lib/twr_ss_nrng"
-    - "@decawave-uwb-core/lib/uwb_pan"
     - "@decawave-uwb-core/lib/uwb_wcs"
+    - "@decawave-uwb-core/lib/uwb_rng"
+    - "@decawave-uwb-core/lib/rtdoa_tag"
     - "@mynewt-timescale-lib/lib/timescale"
     - "@decawave-uwb-core/sys/uwbcfg"
     - "@decawave-uwb-core/lib/nmgr_uwb"
-    - "@decawave-uwb-core/lib/tofdb"
-    - "@decawave-uwb-core/mgmt/bcast_ota"
-    - "@decawave-uwb-core/lib/panmaster"
     - "@decawave-uwb-apps/lib/bleprph"
+    - "@decawave-uwb-apps/lib/rtdoa_backhaul"
 
 pkg.cflags:
     - "-std=gnu11"
