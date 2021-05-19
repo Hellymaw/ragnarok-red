@@ -32,38 +32,21 @@
 uint16_t primary_addr;
 uint16_t primary_net_idx;
 
-#define OOB_AUTH_ENABLE 1
-
+// Only define these functions if OOB Auth is being used
 #ifdef OOB_AUTH_ENABLE
 
-static int output_number(bt_mesh_output_action_t action, u32_t number)
-{
-	printk("OOB Number: %lu\n", number);
-	return 0;
-}
+static int output_number(bt_mesh_output_action_t, u32_t);
+static int output_string(const char *);
 
-static int output_string(const char *str)
-{
-	printk("OOB String: %s\n", str);
-	return 0;
-}
+#endif // OOB_AUTH_ENABLE
 
-#endif
+static void prov_complete(u16_t net_idx, u16_t addr);
+static void prov_reset(void);
 
-static void prov_complete(u16_t net_idx, u16_t addr)
-{
-	printk("Local node provisioned, primary address 0x%04x\n", addr);
-	primary_addr = addr;
-	primary_net_idx = net_idx;
-}
-
-static void prov_reset(void)
-{
-	bt_mesh_prov_enable(BT_MESH_PROV_ADV | BT_MESH_PROV_GATT);
-}
-
+// Devices UUID
 static u8_t dev_uuid[16] = MYNEWT_VAL(BLE_MESH_DEV_UUID);
 
+// Device provisioning setup (aka UUID, OOB Auth, callbacks, etc.)
 static const struct bt_mesh_prov prov = {
 	.uuid = dev_uuid,
 
@@ -80,11 +63,67 @@ static const struct bt_mesh_prov prov = {
 	.reset = prov_reset,
 };
 
+// Only define these functions if OOB Auth is being used
+#ifdef OOB_AUTH_ENABLE
+
+/**
+ * @brief Outputs number for OOB authentification
+ */
+static int output_number(bt_mesh_output_action_t action, u32_t number)
+{
+	printk("OOB Number: %lu\n", number);
+	return 0;
+}
+
+/**
+ * @brief Outputs string for OOB authentification
+ */
+static int output_string(const char *str)
+{
+	printk("OOB String: %s\n", str);
+	return 0;
+}
+
+#endif // OOB_AUTH_ENABLE
+
+/**
+ * @brief Called after blemesh provisioning is completed successfully
+ * 
+ * @param net_idx The network index
+ * @param addr The primary network address
+ */
+static void prov_complete(u16_t net_idx, u16_t addr)
+{
+	printk("Local node provisioned, primary address 0x%04x\n", addr);
+	
+	// NOTE: These variables are likely not set on reset
+	// NOTE: These are used in another file, likely unnecessary
+	// Save the index and address
+	primary_addr = addr;
+	primary_net_idx = net_idx;
+}
+
+/**
+ * @brief Called when the node is told to reset provisioning
+ */
+static void prov_reset(void)
+{
+	bt_mesh_prov_enable(BT_MESH_PROV_ADV | BT_MESH_PROV_GATT);
+}
+
+/**
+ * @brief Called when host and controlled are reset due to error
+ * 
+ * @param reason reason for reset
+ */
 void blemesh_on_reset(int reason)
 {
 	BLE_HS_LOG(ERROR, "Resetting state; reason=%d\n", reason);
 }
 
+/**
+ * @brief Called when host and controller sync after power on or reset
+ */
 void blemesh_on_sync(void)
 {
 	int err;
@@ -92,29 +131,37 @@ void blemesh_on_sync(void)
 
 	console_printf("Bluetooth initialized\n");
 
-	/* Use NRPA */
+	// Use Non-Resolvable Private Address (NRPA) 
 	err = ble_hs_id_gen_rnd(1, &addr);
 	assert(err == 0);
 	err = ble_hs_id_set_rnd(addr.val);
 	assert(err == 0);
 
+	// Attempt to initialise mesh
 	err = bt_mesh_init(addr.type, &prov, &comp);
 	if (err) {
+		
 		console_printf("Initializing mesh failed (err %d)\n", err);
 		return;
 	}
 
+	// If persistent blemesh config is enabled, attempt to load settings
 	if (IS_ENABLED(CONFIG_SETTINGS)) {
+		
 		console_printf("Attempting to restore mesh network from flash...\n");
 		settings_load();
 	}
 
+	// Check to see if the mesh config was restored from flash
 	if (bt_mesh_is_provisioned()) {
+
 		console_printf("Mesh network restored from flash\n");
 	} else {
+
 		console_printf("Mesh network was unable to be restored from flash\n");
 	}
 
+	// Enable provisioning
 	bt_mesh_prov_enable(BT_MESH_PROV_GATT | BT_MESH_PROV_ADV);
 
 	console_printf("Mesh initialized\n");

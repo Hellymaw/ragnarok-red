@@ -23,17 +23,14 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
-
 #include "console/console.h"
 #include "hal/hal_gpio.h"
 #include "mesh/mesh.h"
 
 #include "app_gpio.h"
-// #include "storage.h"
 
-#include "ble_mesh.h"
-#include "device_composition.h"
+#include "mesh/ble_mesh.h"
+#include "mesh/device_composition.h"
 
 int main(void)
 {
@@ -44,16 +41,15 @@ int main(void)
 
 	init_pub();
 
-	// ps_settings_init();
-
 	printk("Initializing...\n");
 
-	/* Initialize the NimBLE host configuration. */
+	// Initialize the NimBLE host configuration.
 	ble_hs_cfg.reset_cb = blemesh_on_reset;
 	ble_hs_cfg.sync_cb = blemesh_on_sync;
 	ble_hs_cfg.store_status_cb = ble_store_util_status_rr;
 
 	while (1) {
+	
 		os_eventq_run(os_eventq_dflt_get());
 	}
 

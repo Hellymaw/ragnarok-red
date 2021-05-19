@@ -27,20 +27,24 @@
 #ifndef _DEVICE_COMPOSITION_H
 #define _DEVICE_COMPOSITION_H
 
-#define CID_RUNTIME 0x05C3
+// NOTE: unsure of what company this refers to
+// Company ID
+#define CID_RUNTIME 	0x05C3
 
-#define STATE_OFF	0x00
-#define STATE_ON	0x01
+// Define states for onoff model
+#define STATE_OFF		0x00
+#define STATE_ON		0x01
 #define STATE_DEFAULT	0x01
 #define STATE_RESTORE	0x02
 
-
+// Keeps track of onoff models state
 struct onoff_state {
     uint8_t current;
     uint8_t previous;
     uint8_t led_gpio_pin;
 };
 
+// Keeps track of vendor models state
 struct vendor_state {
 	int current;
 	uint32_t response;
@@ -50,18 +54,29 @@ struct vendor_state {
 	int64_t last_msg_timestamp;
 };
 
+// TODO: Can these externs be '.c' static?
+// NOTE: Can't remember if these are necessary here now
+
+// User data for onoff server in root element
 extern struct generic_onoff_state gen_onoff_srv_root_user_data;
 
+// Models in the root element
 extern struct bt_mesh_model root_models[];
+
+// Vendor models
 extern struct bt_mesh_model vnd_models[];
 
+// Device composition (aka, all devices elements)
 extern const struct bt_mesh_comp comp;
 
+// TODO: Double check that's what these two are
+// Model for switch client
 extern struct bt_mesh_model *mod_cli_sw[];
+
+// Model for switch server
 extern struct bt_mesh_model *mod_srv_sw[];
 
-void gen_onoff_set_unack(struct bt_mesh_model *model,
-                                struct bt_mesh_msg_ctx *ctx,
-                                struct os_mbuf *buf);
+// Message handler for onoff model unack
+void gen_onoff_set_unack(struct bt_mesh_model *model, struct bt_mesh_msg_ctx *ctx, struct os_mbuf *buf);
 
 #endif

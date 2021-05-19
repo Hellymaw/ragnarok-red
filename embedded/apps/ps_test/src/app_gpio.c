@@ -24,20 +24,22 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "bsp/bsp.h"
 #include "console/console.h"
+#include "bsp/bsp.h"
 #include "hal/hal_gpio.h"
 #include "mesh/mesh.h"
 
 #include "app_gpio.h"
-#include "device_composition.h"
-#include "ble_mesh.h"
 
+#include "mesh/ble_mesh.h"
+#include "mesh/device_composition.h"
+
+// Buttons used
 int button_device[] = {
 	BUTTON_1,
-	// BUTTON_2,
 };
 
+// LEDs used 
 const int led_device[] = {
 	LED_1,
 	LED_2,
@@ -45,21 +47,32 @@ const int led_device[] = {
 	LED_4,
 };
 
+// Switch
 static struct sw sw;
+
+// Last & currect button press time
 static uint32_t time, last_time;
+
+// Number of button presses
 static uint8_t button_press_cnt;
 
+// NOTE: This should be removed during actual mesh implementation
+// Count of transistion??
 static uint8_t trans_id;
 
-/*
- * Map GPIO pins to button number
- * Change to select different GPIO input pins
+// Button event (this is an event that is placed into event queue by an IRQ)
+static struct os_event button_event;
+
+/**
+ * @brief Map GPIO pins to button number
+ * 
+ * @param pin_pos Position of pin
+ * @return uint8_t Index of pin for sw
  */
 static uint8_t pin_to_sw(int pin_pos)
 {
     switch (pin_pos) {
         case BUTTON_1: return 0;
-        // case BUTTON_2: return 1;
         default:break;
     }
 
@@ -67,6 +80,12 @@ static uint8_t pin_to_sw(int pin_pos)
     return 0;
 }
 
+/**
+ * @brief Handles the button_pressed event
+ *        Also debounces button press
+ * 
+ * @param ev button_pressed event
+ */
 static void button_pressed(struct os_event *ev)
 {
     int pin_pos = (int ) ev->ev_arg;
@@ -98,10 +117,10 @@ static void button_pressed(struct os_event *ev)
     last_time = time;
 }
 
+// NOTE: Unsure why this is called 'Timer'
 /*
  * Button Count Timer Worker
  */
-
 static void button_cnt_timer(struct os_event *work)
 {
     struct sw *button_sw = work->ev_arg;
@@ -113,10 +132,10 @@ static void button_cnt_timer(struct os_event *work)
     os_callout_reset(&sw.button_work, 0);
 }
 
+// NOTE: we won't have buttons but note usage of 'goto'
 /*
  * Button Pressed Worker Task
  */
-
 static void button_pressed_worker(struct os_event *work)
 {
     struct os_mbuf *msg = NET_BUF_SIMPLE(1);
@@ -176,14 +195,18 @@ done:
     os_mbuf_free_chain(msg);
 }
 
-static struct os_event button_event;
-
+/**
+ * @brief Interrupt handler for GPIO, adds 'button_event' to event queue
+ */
 static void gpio_irq_handler(void *arg)
 {
 	button_event.ev_arg = arg;
 	os_eventq_put(os_eventq_dflt_get(), &button_event);
 }
 
+/**
+ * @brief Initialises GPIO
+ */
 void app_gpio_init(void)
 {
 	/* LEDs configiuratin & setting */
