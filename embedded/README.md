@@ -83,7 +83,7 @@ J-Link>exit
 
 ```
     newt target create rr_tag
-    newt target set rr_tag app=apps/rr-node
+    newt target set rr_tag app=apps/rr-tag
     newt target set rr_tag bsp=@decawave-uwb-core/hw/bsp/dwm1001
     newt target set rr_tag build_profile=optimized
     newt target amend rr_tag cflags=-Wno-error
