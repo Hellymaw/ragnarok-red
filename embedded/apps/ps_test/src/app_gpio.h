@@ -28,21 +28,21 @@
 #define _APP_GPIO_H
 
 // Button debounce time
-#define BUTTON_DEBOUNCE_DELAY_MS 250
+// #define BUTTON_DEBOUNCE_DELAY_MS 250
 
 // Switch, keeps track of state and callbacks
-struct sw {
-    uint8_t sw_num;
-    uint8_t onoff_state;
-    struct os_callout button_work;
-    struct os_callout button_timer;
-};
+// struct sw {
+//     uint8_t sw_num;
+//     uint8_t onoff_state;
+//     struct os_callout button_work;
+//     struct os_callout button_timer;
+// };
 
 // Buttons used
-extern int button_device[];
+// extern int button_device[];
 
-// LEDs used
-extern const int led_device[];
+// // LEDs used
+// extern const int led_device[];
 
 // Initialises GPIO
 void app_gpio_init(void);

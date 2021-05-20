@@ -32,6 +32,7 @@
 #include "mesh/ble_mesh.h"
 #include "mesh/device_composition.h"
 
+
 int main(void)
 {
 	/* Initialize OS */
