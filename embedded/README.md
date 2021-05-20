@@ -109,6 +109,7 @@ J-Link>exit
 ```
     newt run rr_node_s 0 (Slave)
     newt run rr_node_m 0 (Master)
+    newt run rr_tag 0    (Tag)
     
     OR
     
@@ -119,12 +120,10 @@ J-Link>exit
     [Slave]
     newt build rr_node_s && newt create-image rr_node_s 0
     newt load rr_node_s
-```
-
-or:
-
-```
-    newt run rr_tag 0
+    
+    [Tag]
+    newt build rr_tag && newt create-image rr_tag 0
+    newt load rr_tag
 ```
 
 ## Handy BLE mesh things
