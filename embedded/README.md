@@ -70,7 +70,7 @@ J-Link>exit
 2.0 Setup target for rr-node MASTER (CCP SYNC MASTER)
 
 ```
-    newt target create rr_node
+    newt target create rr_node_m
     newt target set rr_node_m app=apps/rr-node
     newt target set rr_node_m bsp=@decawave-uwb-core/hw/bsp/dwm1001
     newt target set rr_node_m build_profile=optimized
@@ -83,7 +83,7 @@ J-Link>exit
 2.1 Setup target for rr-node SLAVE (Beacon)
 
 ```
-    newt target create rr_node
+    newt target create rr_node_s
     newt target set rr_node_s app=apps/rr-node
     newt target set rr_node_s bsp=@decawave-uwb-core/hw/bsp/dwm1001
     newt target set rr_node_s build_profile=optimized
