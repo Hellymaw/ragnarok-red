@@ -1,48 +1,29 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- *  http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
-
-/* Bluetooth: Mesh Generic OnOff, Generic Level, Lighting & Vendor Models
- *
- * Copyright (c) 2018 Vikrant More
- *
- * SPDX-License-Identifier: Apache-2.0
- */
+#include "device_composition.h"
 
 #include "console/console.h"
 #include "hal/hal_gpio.h"
 #include "bsp/bsp.h"
 #include "mesh/mesh.h"
 
-#include "app_gpio.h"
 #include "ble_mesh.h"
-#include "device_composition.h"
+
+// TODO: fix this
+struct tag_ranges ranges;
+
+// Have the TIDs been randomised
+static bool is_randomisation_of_TIDs_done;
+
+// TID for vnd_range publishing
+static uint8_t tid_vnd_range;
+
 
 // Pins for LEDs used by onoff model
-static struct onoff_state onoff_state_arr[] = {
-        { .led_gpio_pin = LED_1 },
-        { .led_gpio_pin = LED_2 },
-        { .led_gpio_pin = LED_3 },
-        { .led_gpio_pin = LED_4 },
+static struct onoff_state onoff_server_led = {
+    .led_gpio_pin = LED_1
 };
 
 // Configuration server
-static struct bt_mesh_cfg_srv cfg_srv = {
+static struct bt_mesh_cfg_srv config_server = {
 	.relay = BT_MESH_RELAY_ENABLED,
 	.beacon = BT_MESH_BEACON_ENABLED,
 
@@ -67,95 +48,128 @@ static struct bt_mesh_cfg_srv cfg_srv = {
 	.relay_retransmit = BT_MESH_TRANSMIT(3, 20),
 };
 
-/*
- * Client Configuration Declaration
- */
+// Device mesh health server
+static struct bt_mesh_health_srv health_server = {};
 
-// Configuration client
-static struct bt_mesh_cfg_cli cfg_cli = {};
-
-// Device health server
-static struct bt_mesh_health_srv health_srv = {};
-
-// TODO: Double check these descriptions are correct
+static struct bt_mesh_elem elements[];
 
 // Publishers
 static struct bt_mesh_model_pub health_pub;
-static struct bt_mesh_model_pub gen_onoff_srv_pub_root;
-static struct bt_mesh_model_pub gen_onoff_cli_pub_root;
-static struct bt_mesh_model_pub vnd_pub;
+static struct bt_mesh_model_pub gen_onoff_server_pub;
+static struct bt_mesh_model_pub vnd_range_server_pub;
+static struct bt_mesh_model_pub vnd_range_client_pub;
 
-// Buffers for publishers
 static struct os_mbuf *bt_mesh_pub_msg_health_pub;
-static struct os_mbuf *bt_mesh_pub_msg_gen_onoff_srv_pub_root;
-static struct os_mbuf *bt_mesh_pub_msg_gen_onoff_cli_pub_root;
-static struct os_mbuf *bt_mesh_pub_msg_vnd_pub;
+static struct os_mbuf *bt_mesh_pub_msg_gen_onoff_server_pub;
+static struct os_mbuf *bt_mesh_pub_msg_vnd_range_server_pub;
+static struct os_mbuf *bt_mesh_pub_msh_vnd_range_client_pub;
 
 /**
- * @brief Initialise publishers
+ * @brief Initialise and configure publisher buffers
  */
 void init_pub(void)
 {
-	// Configure buffers
-	bt_mesh_pub_msg_health_pub					= NET_BUF_SIMPLE(1 + 3 + 0);
-	bt_mesh_pub_msg_gen_onoff_srv_pub_root		= NET_BUF_SIMPLE(2 + 2);
-	bt_mesh_pub_msg_gen_onoff_cli_pub_root		= NET_BUF_SIMPLE(2 + 2);
-	bt_mesh_pub_msg_vnd_pub						= NET_BUF_SIMPLE(3 + 6);
-	
-	// Configure publisher messages
-	health_pub.msg					= bt_mesh_pub_msg_health_pub;
-	gen_onoff_srv_pub_root.msg		= bt_mesh_pub_msg_gen_onoff_srv_pub_root;
-	gen_onoff_cli_pub_root.msg		= bt_mesh_pub_msg_gen_onoff_cli_pub_root;
-	vnd_pub.msg						= bt_mesh_pub_msg_vnd_pub;	
+    // TODO: figure out what sizes mean
+    // TODO: Change sizes
+    // Initialise buffers
+    bt_mesh_pub_msg_health_pub = NET_BUF_SIMPLE(1 + 3 + 0);
+    bt_mesh_pub_msg_gen_onoff_server_pub = NET_BUF_SIMPLE(2 + 2);
+    bt_mesh_pub_msg_vnd_range_server_pub = NET_BUF_SIMPLE(3 + 4 + 4);
+    bt_mesh_pub_msh_vnd_range_client_pub = NET_BUF_SIMPLE(3 + 4 + 4);
+
+    // Configure buffers
+    health_pub.msg = bt_mesh_pub_msg_health_pub;
+    gen_onoff_server_pub.msg = bt_mesh_pub_msg_gen_onoff_server_pub;
+    vnd_range_server_pub.msg = bt_mesh_pub_msg_vnd_range_server_pub;
+    vnd_range_client_pub.msg = bt_mesh_pub_msh_vnd_range_client_pub;
 }
-
-// Stores vencer state information
-struct vendor_state vnd_user_data;
-
-// Device elements
-static struct bt_mesh_elem elements[];
-
 
 
 /**
- * @brief Message handler for onoff server model get cmd
+ * @brief Randomise the TIDs for publishers
  */
-static void gen_onoff_get(struct bt_mesh_model *model,
-                          struct bt_mesh_msg_ctx *ctx,
-                          struct os_mbuf *buf)
+void randomise_publishers_TID(void)
+{
+	bt_rand(&tid_vnd_range, sizeof(tid_vnd_range));
+
+	is_randomisation_of_TIDs_done = true;
+}
+
+/**
+ * @brief Publishes the state of a vnd_range model
+ * 
+ * @param model Publishing model
+ */
+void vnd_range_publish(struct bt_mesh_model *model)
+{
+    int err;
+    struct os_mbuf *msg = model->pub->msg;
+    struct tag_ranges *ranges = model->user_data;
+
+    if (model->pub->addr == BT_MESH_ADDR_UNASSIGNED) {
+
+        return;
+    }
+
+    // Initialise status message
+    bt_mesh_model_msg_init(msg, VND_RANGE_MODEL_STATUS_OPCODE);
+    net_buf_simple_add_le32(msg, ranges->r1);
+    net_buf_simple_add_le32(msg, ranges->r2);
+
+    err = bt_mesh_model_publish(model);
+    if (err) {
+
+        printk("bt_mesh_model_publish err %d\n", err);
+    }
+}
+
+/**
+ * @brief Generic onoff model 'get' message handler
+ * 
+ * @param model Calling mesh model
+ * @param ctx Message context
+ * @param buf Message data
+ */
+static void gen_onoff_get(struct bt_mesh_model *model, struct bt_mesh_msg_ctx 
+        *ctx, struct os_mbuf *buf)
 {
     struct os_mbuf *msg = NET_BUF_SIMPLE(2 + 1 + 4);
     struct onoff_state *state = model->user_data;
 
-    BT_INFO("addr 0x%04x onoff 0x%02x",
-                bt_mesh_model_elem(model)->addr, state->current);
-    bt_mesh_model_msg_init(msg, BT_MESH_MODEL_OP_GEN_ONOFF_STATUS);
+    // Log received message
+    BT_INFO("addr 0x%04x onoff 0x%02x", bt_mesh_model_elem(model)->addr, state->current);
+
+    // Initialise status message
+    bt_mesh_model_msg_init(msg, BT_MESH_MODEL_OP_2(0x82, 0x04));
     net_buf_simple_add_u8(msg, state->current);
 
     if (bt_mesh_model_send(model, ctx, msg, NULL, NULL)) {
-        BT_ERR("Unable to send On Off Status response");
+
+        BT_ERR("Unable to send onoff status response");
     }
 
     os_mbuf_free_chain(msg);
 }
 
 /**
- * @brief Message handler for onoff model unack
+ * @brief Generic onoff model set unack message handler
+ * 
+ * @param model Calling mesh model
+ * @param ctx Message context
+ * @param buf Message data
  */
-void gen_onoff_set_unack(struct bt_mesh_model *model,
-                                struct bt_mesh_msg_ctx *ctx,
-                                struct os_mbuf *buf)
+void gen_onoff_set_unack(struct bt_mesh_model *model, struct bt_mesh_msg_ctx *ctx, struct os_mbuf *buf)
 {
     struct os_mbuf *msg = model->pub->msg;
     struct onoff_state *state = model->user_data;
     int err;
 
     state->current = net_buf_simple_pull_u8(buf);
-    BT_INFO("addr 0x%02x state 0x%02x",
-                bt_mesh_model_elem(model)->addr, state->current);
 
-    /* Pin set low turns on LED's on the nrf52840-pca10056 board */
-    hal_gpio_write(state->led_gpio_pin, state->current ? 0 : 1);
+    // Log current state
+    BT_INFO("addr 0x%02x state 0x%02x");
+
+    hal_gpio_write(state->led_gpio_pin, (state->current) ? 0 : 1);
 
     /*
      * If a server has a publish address, it is required to
@@ -166,28 +180,32 @@ void gen_onoff_set_unack(struct bt_mesh_model *model,
      * Only publish if there is an assigned address
      */
 
-    if (state->previous != state->current &&
-        model->pub->addr != BT_MESH_ADDR_UNASSIGNED) {
-        BT_INFO("publish last 0x%02x cur 0x%02x",
-                    state->previous,
-                    state->current);
+    if (state->previous != state->current && 
+            model->pub->addr != BT_MESH_ADDR_UNASSIGNED) {
+        BT_INFO("publish last 0x%02x cur 0x%02x", state->previous, state->current);
+        
         state->previous = state->current;
-        bt_mesh_model_msg_init(msg,
-                               BT_MESH_MODEL_OP_GEN_ONOFF_STATUS);
+
+        bt_mesh_model_msg_init(msg, BT_MESH_MODEL_OP_2(0x82, 0x04));
         net_buf_simple_add_u8(msg, state->current);
+        
         err = bt_mesh_model_publish(model);
         if (err) {
+        
             BT_ERR("bt_mesh_model_publish err %d", err);
         }
     }
 }
 
 /**
- * @brief Message handler for onoff server model set cmd
+ * @brief Generic onoff server set message handler
+ * 
+ * @param model Calling mesh model
+ * @param ctx Message context
+ * @param buf Message buffer
  */
-static void gen_onoff_set(struct bt_mesh_model *model,
-                          struct bt_mesh_msg_ctx *ctx,
-                          struct os_mbuf *buf)
+static void gen_onoff_set(struct bt_mesh_model *model, 
+        struct bt_mesh_msg_ctx *ctx, struct os_mbuf *buf)
 {
     BT_INFO("");
 
@@ -196,172 +214,93 @@ static void gen_onoff_set(struct bt_mesh_model *model,
 }
 
 /**
- * @brief Message handler for onoff client model status cmd
+ * @brief Vendor range infor server get message handler
+ * 
+ * @param model Calling mesh model
+ * @param ctx Message context
+ * @param buf Message buffer
  */
-static void gen_onoff_status(struct bt_mesh_model *model,
-                             struct bt_mesh_msg_ctx *ctx,
-                             struct os_mbuf *buf)
+static void vnd_range_get(struct bt_mesh_model *model, struct bt_mesh_msg_ctx *ctx, struct os_mbuf *buf)
 {
-    uint8_t	state;
+    struct os_mbuf *msg = NET_BUF_SIMPLE(3 + 8 + 4);
+    struct tag_ranges *ranges = model->user_data;
 
-    state = net_buf_simple_pull_u8(buf);
+    // Log received message
+    BT_INFO("addr 0x%04x vnd_range r1:%d, r2:%d", bt_mesh_model_elem(model)->addr, ranges->r1, ranges->r2);
 
-    BT_INFO("Node 0x%04x OnOff status from 0x%04x with state 0x%02x",
-                bt_mesh_model_elem(model)->addr, ctx->addr, state);
+    // Initialise status message
+    bt_mesh_model_msg_init(msg, VND_RANGE_MODEL_STATUS_OPCODE);
+    net_buf_simple_add_le32(msg, ranges->r1);
+    net_buf_simple_add_le32(msg, ranges->r2);
+
+    if (bt_mesh_model_send(model, ctx, msg, NULL, NULL)) {
+
+        BT_ERR("Unable to send onoff status response");
+    }
+
+    os_mbuf_free_chain(msg);
 }
 
 /**
- * @brief Message handler for vendor model get cmd
+ * @brief Vendor range info client status message handler
+ * 
+ * @param model Calling mesh model
+ * @param ctx Message context
+ * @param buf Message buffer
  */
-static void vnd_get(struct bt_mesh_model *model,
-		    struct bt_mesh_msg_ctx *ctx,
-		    struct os_mbuf *buf)
+static void vnd_range_status(struct bt_mesh_model *model, struct bt_mesh_msg_ctx *ctx, struct os_mbuf *buf)
 {
-	struct os_mbuf *msg = NET_BUF_SIMPLE(3 + 6 + 4);
-	struct vendor_state *state = model->user_data;
-
-	/* This is dummy response for demo purpose */
-	state->response = 0xA578FEB3;
-
-	bt_mesh_model_msg_init(msg, BT_MESH_MODEL_OP_3(0x04, CID_RUNTIME));
-	net_buf_simple_add_le16(msg, state->current);
-	net_buf_simple_add_le32(msg, state->response);
-
-	if (bt_mesh_model_send(model, ctx, msg, NULL, NULL)) {
-		printk("Unable to send VENDOR Status response\n");
-	}
-
-	os_mbuf_free_chain(msg);
+    printk("Acknowledgement from VND_RANGE_SERVER\n");
+    printk("Present r1:%ld, r2:%ld\n", (int32_t)net_buf_simple_pull_le32(buf), (int32_t)net_buf_simple_pull_le32(buf));
 }
 
-/**
- * @brief Message handler for vendor model unack
- */
-static void vnd_set_unack(struct bt_mesh_model *model,
-			  struct bt_mesh_msg_ctx *ctx,
-			  struct os_mbuf *buf)
-{
-	u8_t tid;
-	int current;
-	s64_t now;
-	struct vendor_state *state = model->user_data;
 
-	current = net_buf_simple_pull_le16(buf);
-	tid = net_buf_simple_pull_u8(buf);
 
-	now = k_uptime_get();
-	if (state->last_tid == tid &&
-	    state->last_src_addr == ctx->addr &&
-	    state->last_dst_addr == ctx->recv_dst &&
-	    (now - state->last_msg_timestamp <= K_SECONDS(6))) {
-		return;
-	}
-
-	state->last_tid = tid;
-	state->last_src_addr = ctx->addr;
-	state->last_dst_addr = ctx->recv_dst;
-	state->last_msg_timestamp = now;
-	state->current = current;
-
-	printk("Vendor model message = %04x\n", state->current);
-
-	if (state->current == STATE_ON) {
-		/* LED2 On */
-		hal_gpio_write(led_device[1], 0);
-	} else {
-		/* LED2 Off */
-		hal_gpio_write(led_device[1], 1);
-	}
-}
-
-/**
- * @brief Message handler for vendor model set cmd
- */
-static void vnd_set(struct bt_mesh_model *model,
-		    struct bt_mesh_msg_ctx *ctx,
-		    struct os_mbuf *buf)
-{
-	vnd_set_unack(model, ctx, buf);
-	vnd_get(model, ctx, buf);
-}
-
-/**
- * @brief Message handler for vendor model status cmd
- */
-static void vnd_status(struct bt_mesh_model *model,
-		       struct bt_mesh_msg_ctx *ctx,
-		       struct os_mbuf *buf)
-{
-	printk("Acknownledgement from Vendor\n");
-	printk("cmd = %04x\n", net_buf_simple_pull_le16(buf));
-	printk("response = %08lx\n", net_buf_simple_pull_le32(buf));
-}
-
-/* Mapping of message handlers for Generic OnOff Server (0x1000) */
-static const struct bt_mesh_model_op gen_onoff_srv_op[] = {
-	{ BT_MESH_MODEL_OP_2(0x82, 0x01), 0, gen_onoff_get },
-	{ BT_MESH_MODEL_OP_2(0x82, 0x02), 2, gen_onoff_set },
-	{ BT_MESH_MODEL_OP_2(0x82, 0x03), 2, gen_onoff_set_unack },
-	BT_MESH_MODEL_OP_END,
+// TODO: Check min message length
+static const struct bt_mesh_model_op gen_onoff_server_opcodes[] = {
+    {BT_MESH_MODEL_OP_2(0x82, 0x01), 0, gen_onoff_get},
+    {BT_MESH_MODEL_OP_2(0x82, 0x02), 2, gen_onoff_set},
+    {BT_MESH_MODEL_OP_2(0x82, 0x03), 2, gen_onoff_set_unack},
+    BT_MESH_MODEL_OP_END
 };
 
-/* Mapping of message handlers for Generic OnOff Client (0x1001) */
-static const struct bt_mesh_model_op gen_onoff_cli_op[] = {
-	{ BT_MESH_MODEL_OP_2(0x82, 0x04), 1, gen_onoff_status },
-	BT_MESH_MODEL_OP_END,
+static const struct bt_mesh_model_op vnd_range_server_opcodes[] = {
+    {VND_RANGE_MODEL_GET_OPCODE, 0, vnd_range_get},
+    BT_MESH_MODEL_OP_END
 };
 
-
-/* Mapping of message handlers for Vendor (0x4321) */
-static const struct bt_mesh_model_op vnd_ops[] = {
-	{ BT_MESH_MODEL_OP_3(0x01, CID_RUNTIME), 0, vnd_get },
-	{ BT_MESH_MODEL_OP_3(0x02, CID_RUNTIME), 3, vnd_set },
-	{ BT_MESH_MODEL_OP_3(0x03, CID_RUNTIME), 3, vnd_set_unack },
-	{ BT_MESH_MODEL_OP_3(0x04, CID_RUNTIME), 6, vnd_status },
-	BT_MESH_MODEL_OP_END,
+static const struct bt_mesh_model_op vnd_range_client_opcodes[] = {
+    {VND_RANGE_MODEL_STATUS_OPCODE, 8, vnd_range_status},
+    BT_MESH_MODEL_OP_END
 };
 
+// TODO: Setup variables
+// NOTE: Unsure of setupserver userdata being &location
 // Setup of device root element models
 struct bt_mesh_model root_models[] = {
-	BT_MESH_MODEL_CFG_SRV(&cfg_srv),
-	BT_MESH_MODEL_CFG_CLI(&cfg_cli),
-	BT_MESH_MODEL_HEALTH_SRV(&health_srv, &health_pub),
-	BT_MESH_MODEL(BT_MESH_MODEL_ID_GEN_ONOFF_SRV,
-		      gen_onoff_srv_op, &gen_onoff_srv_pub_root,
-		      &onoff_state_arr[0]),
-	BT_MESH_MODEL(BT_MESH_MODEL_ID_GEN_ONOFF_CLI,
-		      gen_onoff_cli_op, &gen_onoff_cli_pub_root,
-		      &onoff_state_arr[0]),
+    BT_MESH_MODEL_CFG_SRV(&config_server),
+    BT_MESH_MODEL_HEALTH_SRV(&health_server, &health_pub),
+    BT_MESH_MODEL(BT_MESH_MODEL_ID_GEN_ONOFF_SRV, gen_onoff_server_opcodes, &gen_onoff_server_pub, &onoff_server_led),
 };
 
-// Setup of device vendor models
+// TODO: Setup variable
+// TODO: Add extra models for other ranges
 struct bt_mesh_model vnd_models[] = {
-	BT_MESH_MODEL_VND(CID_RUNTIME, 0x4321, vnd_ops,
-			  &vnd_pub, &vnd_user_data),
+    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4321, vnd_range_server_opcodes, &vnd_range_server_pub, &ranges),
+    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4321, vnd_range_client_opcodes, &vnd_range_client_pub, NULL),
 };
+
+struct bt_mesh_model *led_onoff_server = &root_models[2];
 
 // Setup of device elements
 static struct bt_mesh_elem elements[] = {
-	BT_MESH_ELEM(0, root_models,  vnd_models),
+    BT_MESH_ELEM(0, root_models, BT_MESH_MODEL_NONE),
+    BT_MESH_ELEM(0, BT_MESH_MODEL_NONE, vnd_models)
 };
 
-// Setup of device composition
-const struct bt_mesh_comp comp = {
-	.cid = CID_RUNTIME,
-	.elem = elements,
-	.elem_count = ARRAY_SIZE(elements),
-};
-
-/*
- * Button to Client Model Assignments
- */
-struct bt_mesh_model *mod_cli_sw[] = {
-        &root_models[4],
-};
-
-/*
- * LED to Server Model Assigmnents
- */
-struct bt_mesh_model *mod_srv_sw[] = {
-        &root_models[3],
+// Device mesh composition
+const struct bt_mesh_comp composition = {
+    .cid = CID_RUNTIME,
+    .elem = elements, 
+    .elem_count = ARRAY_SIZE(elements)
 };

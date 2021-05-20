@@ -138,7 +138,7 @@ void blemesh_on_sync(void)
 	assert(err == 0);
 
 	// Attempt to initialise mesh
-	err = bt_mesh_init(addr.type, &prov, &comp);
+	err = bt_mesh_init(addr.type, &prov, &composition);
 	if (err) {
 		
 		console_printf("Initializing mesh failed (err %d)\n", err);
