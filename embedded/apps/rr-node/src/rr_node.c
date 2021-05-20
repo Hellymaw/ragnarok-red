@@ -68,6 +68,24 @@
 #endif
 #include "rr_node.h"
 
+
+
+/**
+ * @brief Primary thread that will carry out RTDOA node functionality,
+ *          based on build command, this will build for either a slave
+ *          or a master node. 
+ * 
+ * @param arg 
+ */
+void rtdoa_node_task(void *arg) {
+
+    while(1) {
+        os_time_delay(OS_TICKS_PER_SEC/2);
+        printf("Node\n");
+    }
+
+}
+
 /**
  * @brief Task that will blink the board LED (Used for debug purposes)
  * 
@@ -81,7 +99,6 @@ void blink_led_task(void *arg) {
     while(1) {
         os_time_delay(OS_TICKS_PER_SEC/2);
         /* Toggle the LED */
-        printf("Node\n");
         hal_gpio_toggle(led_pin);
     }
 }

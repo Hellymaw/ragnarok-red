@@ -61,6 +61,11 @@ main(int argc, char **argv)
     os_task_init(&led_task_init, "blink_led_task", blink_led_task, NULL, LED_TASK_PRIOR,
                  OS_WAIT_FOREVER, led_task_stack, LED_TASK_STACK_SIZE);
 
+    
+    //Init RTDOA Node task
+    os_task_init(&rtdoa_node_task_init, "rtdoa_node_task", rtdoa_node_task, NULL, RTDOA_NODE_TASK_PRIOR,
+                 OS_WAIT_FOREVER, rtdoa_node_task_stack, RTDOA_NODE_TASK_STACK_SIZE);                 
+
     while (1) {
         /* Wait one second */
         os_time_delay(OS_TICKS_PER_SEC);

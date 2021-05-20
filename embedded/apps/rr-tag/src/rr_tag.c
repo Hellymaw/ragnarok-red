@@ -52,7 +52,7 @@
 static bool uwb_config_updated = false;
 
 /**
- * @brief Upgade UWB Config
+ * @brief Updates the UWB Config 
  * 
  * @return int 0 on success.
  */
@@ -93,7 +93,11 @@ void rr_tag_packet(struct rtdoabh_tag_results_pkg *p) {
         int sign = (r->diff_dist_mm > 0);
         int ddist_m  = r->diff_dist_mm/1000;
         int ddist_mm = abs(r->diff_dist_mm - ddist_m*1000);
-        printf("Node [%x] -> %s%d.%03d\n", r->anchor_addr,(sign)?"":"-", abs(ddist_m), ddist_mm);
+
+        //TODO Dont print masters range
+        if (r->anchor_addr != MASTER_NODE_ID) {
+            printf("Node [%x] -> %s%d.%03d\n", r->anchor_addr,(sign)?"":"-", abs(ddist_m), ddist_mm);
+        }
     }
 }
 
@@ -136,7 +140,11 @@ static void rtdoa_slot_timer_cb(struct dpl_event *ev)
     //printf("idx%de\n", idx);
 }
 
-
+/**
+ * @brief Slot timer callback
+ * 
+ * @param ev  callback event
+ */
 static void nmgr_slot_timer_cb(struct dpl_event * ev)
 {
     assert(ev);
@@ -166,7 +174,11 @@ static void nmgr_slot_timer_cb(struct dpl_event * ev)
     }
 }
 
-
+/**
+ * @brief Allocates TDMA Slots to device
+ * 
+ * @param tdma 
+ */
 static void tdma_allocate_slots(tdma_instance_t * tdma)
 {
     uint16_t i;

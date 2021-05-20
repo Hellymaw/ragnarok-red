@@ -15,3 +15,17 @@ In function static void process_rx_data_queue(struct os_event *ev)
 
 ## Notes
 This runs without the additional config options and pckg includes that are present in the primary repo, there was an issue with unhandled interrupts when those were enabled. Thus, this builds with settings only required for the RTDOA sample.
+
+## Nodes Status
+C1: Master - C439 
+
+D3: Slave - 19AB LEFT
+
+D1: Slave - 8817 RIGHT
+
+C3: Slave - 5132 TOP
+
+
+## References 
+RTDOA References: 
+https://arxiv.org/pdf/2008.04248.pdf
