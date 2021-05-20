@@ -286,8 +286,8 @@ struct bt_mesh_model root_models[] = {
 // TODO: Setup variable
 // TODO: Add extra models for other ranges
 struct bt_mesh_model vnd_models[] = {
-    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4321, vnd_range_server_opcodes, &vnd_range_server_pub, &ranges),
-    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4321, vnd_range_client_opcodes, &vnd_range_client_pub, NULL),
+    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4001, vnd_range_server_opcodes, &vnd_range_server_pub, &ranges),
+    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4002, vnd_range_client_opcodes, &vnd_range_client_pub, NULL),
 };
 
 struct bt_mesh_model *led_onoff_server = &root_models[2];
