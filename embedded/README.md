@@ -107,7 +107,7 @@ J-Link>exit
 4. Build and run on relevent target
 
 ```
-    newt run rr_node_m 0 (Slave)
+    newt run rr_node_s 0 (Slave)
     newt run rr_node_m 0 (Master)
     
     OR
