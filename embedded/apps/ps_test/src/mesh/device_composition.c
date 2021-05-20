@@ -8,7 +8,10 @@
 #include "ble_mesh.h"
 
 // TODO: fix this
-struct tag_ranges ranges;
+struct tag_ranges ranges = {
+    .r1 = 0x1001,
+    .r2 = 0x2000
+};
 
 // Have the TIDs been randomised
 static bool is_randomisation_of_TIDs_done;
@@ -171,6 +174,9 @@ void gen_onoff_set_unack(struct bt_mesh_model *model, struct bt_mesh_msg_ctx *ct
 
     hal_gpio_write(state->led_gpio_pin, (state->current) ? 0 : 1);
 
+    // TEST: this is to test the vnd_range_publish function, here so that a timer cb isn't required
+    vnd_range_publish(&vnd_models[0]);
+
     /*
      * If a server has a publish address, it is required to
      * publish status on a state change
@@ -274,8 +280,6 @@ static const struct bt_mesh_model_op vnd_range_client_opcodes[] = {
     BT_MESH_MODEL_OP_END
 };
 
-// TODO: Setup variables
-// NOTE: Unsure of setupserver userdata being &location
 // Setup of device root element models
 struct bt_mesh_model root_models[] = {
     BT_MESH_MODEL_CFG_SRV(&config_server),
