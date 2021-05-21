@@ -67,36 +67,63 @@ J-Link>exit
     newt load dwm1001_boot
 ```
 
-2. Setup target for rr-node
+2.0 Setup target for rr-node MASTER (CCP SYNC MASTER)
 
 ```
-    newt target create rr_node
-    newt target set rr_node app=apps/rr-node
-    newt target set rr_node bsp=@decawave-uwb-core/hw/bsp/dwm1001
-    newt target set rr_node build_profile=optimized
-    newt run rr_node 0
+    newt target create rr_node_m
+    newt target set rr_node_m app=apps/rr-node
+    newt target set rr_node_m bsp=@decawave-uwb-core/hw/bsp/dwm1001
+    newt target set rr_node_m build_profile=optimized
+    newt target amend rr_node_m cflags=-Wno-error
+    newt target amend rr_node_m syscfg="MASTER_NODE=1"
     
+
 ```
+
+2.1 Setup target for rr-node SLAVE (Beacon)
+
+```
+    newt target create rr_node_s
+    newt target set rr_node_s app=apps/rr-node
+    newt target set rr_node_s bsp=@decawave-uwb-core/hw/bsp/dwm1001
+    newt target set rr_node_s build_profile=optimized
+    newt target amend rr_node_s cflags=-Wno-error
+    newt target amend rr_node_s syscfg="MASTER_NODE=0"
+    
+
+```
+
 
 3. Setup target for rr-tag
 
 ```
     newt target create rr_tag
-    newt target set rr_tag app=apps/rr-node
+    newt target set rr_tag app=apps/rr-tag
     newt target set rr_tag bsp=@decawave-uwb-core/hw/bsp/dwm1001
     newt target set rr_tag build_profile=optimized
+    newt target amend rr_tag cflags=-Wno-error
 ```
 
 4. Build and run on relevent target
 
 ```
-    newt run rr_node 0
-```
-
-or:
-
-```
-    newt run rr_tag 0
+    newt run rr_node_s 0 (Slave)
+    newt run rr_node_m 0 (Master)
+    newt run rr_tag 0    (Tag)
+    
+    OR
+    
+    [Master]
+    newt build rr_node_m && newt create-image rr_node_m 0
+    newt load rr_node_m 
+    
+    [Slave]
+    newt build rr_node_s && newt create-image rr_node_s 0
+    newt load rr_node_s
+    
+    [Tag]
+    newt build rr_tag && newt create-image rr_tag 0
+    newt load rr_tag
 ```
 
 ## Handy BLE mesh things
