@@ -23,11 +23,15 @@ struct tag_ranges {
 
 extern struct bt_mesh_model *led_onoff_server;
 
-extern struct tag_ranges ranges;
+extern struct tag_ranges ranges1;
+extern struct tag_ranges ranges2;
+extern struct tag_ranges ranges3;
 
 extern struct bt_mesh_model root_models[];
 
 extern struct bt_mesh_model vnd_models[];
+extern struct bt_mesh_model vnd_models_2[];
+extern struct bt_mesh_model vnd_models_3[];
 
 extern const struct bt_mesh_comp composition;
 
