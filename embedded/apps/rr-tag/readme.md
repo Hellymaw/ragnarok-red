@@ -22,7 +22,7 @@ In function rtdoa_backhaul_send(struct uwb_dev * inst, struct rtdoa_instance *rt
 >        }
 
 
-This skips frame difference calculation for the master/ref anchors, speeds things along a little bit. 
+This skips frame difference calculation for the master/ref anchors.
 
 
 ## Notes
