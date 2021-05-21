@@ -15,6 +15,16 @@ os_stack_t led_task_stack[LED_TASK_STACK_SIZE];
 os_stack_t rtdoa_tag_task_stack[RTDOA_TAG_TASK_STACK_SIZE];
 
 
+struct tag_raging_packet {
+    int distToNodeOne;
+    int distToNodeTwo;
+    int distToNodeThree;
+    int distToNodeFour;
+    int distToNodeFive;
+    int distToNodeSix;
+    int distToNodeSeven;
+};
+
 void blink_led_task(void *arg);
 
 void rtdoa_tag_task(void *arg);

@@ -88,17 +88,20 @@ struct uwbcfg_cbs uwb_cb = {
  */
 void rr_tag_packet(struct rtdoabh_tag_results_pkg *p) {
     //TODO Figure out wtf is going on with this ranging nonsense
+    printf("--------\n");
     for (int i=0;i<p->num_ranges;i++) {
         struct rtdoabh_range_data *r = &p->ranges[i];
-        int sign = (r->diff_dist_mm > 0);
-        int ddist_m  = r->diff_dist_mm/1000;
+        //int sign = (r->diff_dist_mm > 0);
+        float ddist_m  = r->diff_dist_mm/1000;
         int ddist_mm = abs(r->diff_dist_mm - ddist_m*1000);
 
         //TODO Dont print masters range
         if (r->anchor_addr != MASTER_NODE_ID) {
-            printf("Node [%x] -> %s%d.%03d\n", r->anchor_addr,(sign)?"":"-", abs(ddist_m), ddist_mm);
+           //printf("Node [%x] -> %s%d.%03d\n", r->anchor_addr,(sign)?"":"-", abs(ddist_m), ddist_mm);
+           printf("Node [%x] : %d.%03d\n", r->anchor_addr,abs(ddist_m), ddist_mm);
         }
     }
+    printf("--------\n");
 }
 
 
