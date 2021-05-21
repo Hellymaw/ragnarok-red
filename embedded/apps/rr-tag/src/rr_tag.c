@@ -264,7 +264,7 @@ void rtdoa_tag_task(void *arg) {
  */
 void blink_led_task(void *arg) {
 
-    int led_pin = LED_1;
+    int led_pin = LED_4;
     hal_gpio_init_out(led_pin, 1);
 
     while(1) {
