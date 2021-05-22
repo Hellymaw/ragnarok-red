@@ -1,14 +1,14 @@
 syscfg.vals:
-    OS_MAIN_STACK_SIZE: 1024
-    MSYS_1_BLOCK_COUNT: 32
+    OS_MAIN_STACK_SIZE: 512
+    MSYS_1_BLOCK_COUNT: 48
     MSYS_1_BLOCK_SIZE: 128
     HARDFLOAT: 1
     FLOAT_USER: 0
     OS_SYSVIEW: 0
-    LOG_LEVEL: 0
+    LOG_LEVEL: 2
     
     BLEPRPH_ENABLED: 0
-    
+
     # Route console to RTT
     CONSOLE_UART: 1
     CONSOLE_RTT: 0
@@ -19,17 +19,16 @@ syscfg.vals:
     CONSOLE_HISTORY_SIZE: 4
 
     # Shell
-    SHELL_TASK: 1
-    SHELL_PROMPT_MODULE: 1
-    SHELL_NEWTMGR: 1
-    CONFIG_CLI: 1
-    IMGMGR_CLI: 1
-    STATS_CLI: 1
-    STATS_NAMES: 1
-    STATS_NEWTMGR: 1
+    SHELL_TASK: 0
+    SHELL_PROMPT_MODULE: 0
+    SHELL_NEWTMGR: 0
+    CONFIG_CLI: 0
+    IMGMGR_CLI: 0
+    STATS_CLI: 0
+    STATS_NAMES: 0
+    STATS_NEWTMGR: 0
     DW1000_CLI: 1
     BCAST_OTA_CLI: 0
-
 
     # UWB
     UWB_DEVICE_0: 1
@@ -77,17 +76,17 @@ syscfg.vals:
 
     
 
-    # IMU
-    I2C_1: 1
-    ADC_0: 1
-    LSM6DSL_ONB: 1
-    LIS2MDL_ONB: 1
-    LPS22HB_ONB: 1
+#     # IMU
+#     I2C_1: 1
+#     ADC_0: 1
+#     LSM6DSL_ONB: 1
+#     LIS2MDL_ONB: 1
+#     LPS22HB_ONB: 1
 
-    NCBWIFI_ESP_PASSTHROUGH: 0
-    ESP12F_ENABLED: 0
+#     NCBWIFI_ESP_PASSTHROUGH: 0
+#     ESP12F_ENABLED: 0
 
-syscfg.defs:
-    IMU_RATE:
-      description: 'Rate at which to print IMU data to UART. Set to 0 to disable'
-      value: 80
+# syscfg.defs:
+#     IMU_RATE:
+#       description: 'Rate at which to print IMU data to UART. Set to 0 to disable'
+#       value: 80

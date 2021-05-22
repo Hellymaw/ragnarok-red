@@ -235,10 +235,6 @@ void rtdoa_tag_task(void *arg) {
     printf("bleprph is enabled\n");
 #endif
 
-    ble_hs_cfg.reset_cb = blemesh_on_reset;
-	ble_hs_cfg.sync_cb = blemesh_on_sync;
-	ble_hs_cfg.store_status_cb = ble_store_util_status_rr;
-    
     // ble_init(udev->my_long_address);
 
     printf("{\"device_id\"=\"%lX\"",udev->device_id);
@@ -256,35 +252,14 @@ void rtdoa_tag_task(void *arg) {
     uwb_ccp_start(ccp, CCP_ROLE_SLAVE);
     rtdoa_backhaul_set_role(udev, RTDOABH_ROLE_BRIDGE);
 
-    //init_timer();
-
-
-    
 
     while(1) {
-        dpl_eventq_run(dpl_eventq_dflt_get());
-        //os_time_delay(OS_TICKS_PER_SEC/2);
+        // dpl_eventq_run(dpl_eventq_dflt_get());
+        os_time_delay(OS_TICKS_PER_SEC);
     }
 
     assert(0);
     return;
 }
 
-
-/**
- * @brief Task that will blink the board LED (Used for debug purposes)
- * 
- * @param arg 
- */
-void blink_led_task(void *arg) {
-
-    int led_pin = LED_4;
-    hal_gpio_init_out(led_pin, 1);
-
-    while(1) {
-        os_time_delay(OS_TICKS_PER_SEC/2);
-        /* Toggle the LED */
-        hal_gpio_toggle(led_pin);
-    }
-}
 

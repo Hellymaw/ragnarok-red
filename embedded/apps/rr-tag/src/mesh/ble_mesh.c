@@ -129,24 +129,24 @@ void blemesh_on_sync(void)
 		return;
 	}
 
-	// // If persistent blemesh config is enabled, attempt to load settings
-	// if (IS_ENABLED(CONFIG_SETTINGS)) {
+	// If persistent blemesh config is enabled, attempt to load settings
+	if (IS_ENABLED(CONFIG_SETTINGS)) {
 		
-	// 	console_printf("Attempting to restore mesh network from flash...\n");
-	// 	settings_load();
-	// }
+		console_printf("Attempting to restore mesh network from flash...\n");
+		settings_load();
+	}
 
-	// // Check to see if the mesh config was restored from flash
-	// if (bt_mesh_is_provisioned()) {
+	// Check to see if the mesh config was restored from flash
+	if (bt_mesh_is_provisioned()) {
 
-	// 	console_printf("Mesh network restored from flash\n");
-	// } else {
+		console_printf("Mesh network restored from flash\n");
+	} else {
 
-	// 	console_printf("Mesh network was unable to be restored from flash\n");
-	// }
+		console_printf("Mesh network was unable to be restored from flash\n");
+	}
 
-	// // Enable provisioning
-	// bt_mesh_prov_enable(BT_MESH_PROV_GATT | BT_MESH_PROV_ADV);
+	// Enable provisioning
+	bt_mesh_prov_enable(BT_MESH_PROV_GATT | BT_MESH_PROV_ADV);
 
-	// console_printf("Mesh initialized\n");
+	console_printf("Mesh initialized\n");
 }
