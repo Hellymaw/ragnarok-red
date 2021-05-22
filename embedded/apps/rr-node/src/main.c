@@ -40,7 +40,15 @@
 #include "mcu/mcu_sim.h"
 #endif
 
-#include "rr_node.h"
+#include "rtdoa/rr_node.h"
+
+#include "mesh/mesh.h"
+
+#include "gpio/app_gpio.h"
+#include "gpio/heartbeat_led.h"
+
+#include "mesh/ble_mesh.h"
+#include "mesh/device_composition.h"
 
 /**
  * main
@@ -53,23 +61,34 @@
 int
 main(int argc, char **argv)
 {
-    int rc;
-
+    
     sysinit();
 
+    app_gpio_init();
+
+	init_pub();
+
+    // Initialize the NimBLE host configuration.
+	ble_hs_cfg.reset_cb = blemesh_on_reset;
+	ble_hs_cfg.sync_cb = blemesh_on_sync;
+	ble_hs_cfg.store_status_cb = ble_store_util_status_rr;
+
     //Init blink led task
-    os_task_init(&led_task_init, "blink_led_task", blink_led_task, NULL, LED_TASK_PRIOR,
-                 OS_WAIT_FOREVER, led_task_stack, LED_TASK_STACK_SIZE);
+    os_task_init(&heartbeat_led_task_init, "heartbeat_led_task", 
+            heartbeat_led_task, NULL, HEARTBEAT_LED_TASK_PRIORITY, 
+            OS_WAIT_FOREVER, heartbeat_led_task_stack, 
+            HEARTBEAT_LED_TASK_STACK_SIZE);
 
     
     //Init RTDOA Node task
-    os_task_init(&rtdoa_node_task_init, "rtdoa_node_task", rtdoa_node_task, NULL, RTDOA_NODE_TASK_PRIOR,
-                 OS_WAIT_FOREVER, rtdoa_node_task_stack, RTDOA_NODE_TASK_STACK_SIZE);                 
+    os_task_init(&rtdoa_node_task_init, "rtdoa_node_task", rtdoa_node_task, 
+            NULL, RTDOA_NODE_TASK_PRIORITY, OS_WAIT_FOREVER, 
+            rtdoa_node_task_stack, RTDOA_NODE_TASK_STACK_SIZE);                 
 
     while (1) {
-        /* Wait one second */
-        os_time_delay(OS_TICKS_PER_SEC);
+
+        os_eventq_run(os_eventq_dflt_get());
     }
-    assert(0);
-    return rc;
+    
+    return 0;
 }
