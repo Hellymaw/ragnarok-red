@@ -1,6 +1,9 @@
 #ifndef RR_TAG_H
 #define RR_TAG_G
 
+#include "os/os.h"
+#include "rtdoa_backhaul/rtdoa_backhaul.h"
+
 #define LED_TASK_PRIOR 10
 #define LED_TASK_STACK_SIZE 250
 

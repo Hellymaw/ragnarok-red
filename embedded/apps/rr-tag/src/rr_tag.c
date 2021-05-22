@@ -45,6 +45,9 @@
 #endif
 #include <rtdoa/rtdoa.h>
 
+#include "mesh/mesh.h"
+#include "mesh/ble_mesh.h"
+
 #include <rtdoa_backhaul/rtdoa_backhaul.h>
 
 #include "rr_tag.h"
@@ -228,7 +231,15 @@ void rtdoa_tag_task(void *arg) {
 
     udev->slot_id = 0;
 
-    ble_init(udev->my_long_address);
+#if MYNEWT_VAL(BLEPRPH_ENABLED)
+    printf("bleprph is enabled\n");
+#endif
+
+    ble_hs_cfg.reset_cb = blemesh_on_reset;
+	ble_hs_cfg.sync_cb = blemesh_on_sync;
+	ble_hs_cfg.store_status_cb = ble_store_util_status_rr;
+    
+    // ble_init(udev->my_long_address);
 
     printf("{\"device_id\"=\"%lX\"",udev->device_id);
     printf(",\"panid=\"%X\"",udev->pan_id);
@@ -246,6 +257,9 @@ void rtdoa_tag_task(void *arg) {
     rtdoa_backhaul_set_role(udev, RTDOABH_ROLE_BRIDGE);
 
     //init_timer();
+
+
+    
 
     while(1) {
         dpl_eventq_run(dpl_eventq_dflt_get());

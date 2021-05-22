@@ -37,6 +37,13 @@ pkg.deps:
     - "@apache-mynewt-core/sys/console/full"
     - "@apache-mynewt-core/mgmt/imgmgr"
     - "@apache-mynewt-core/mgmt/newtmgr"
+    - "@apache-mynewt-core/encoding/base64"
+    - "@apache-mynewt-core/sys/config"
+    - "@apache-mynewt-nimble/nimble/controller"
+    - "@apache-mynewt-nimble/nimble/host"
+    - "@apache-mynewt-nimble/nimble/host/services/gap"
+    - "@apache-mynewt-nimble/nimble/host/services/gatt"
+    - "@apache-mynewt-nimble/nimble/transport/ram"
     - "@decawave-uwb-core/lib/dsp"
     - "@decawave-uwb-core/lib/tdma"
     - "@decawave-uwb-core/lib/uwb_ccp"
@@ -46,7 +53,7 @@ pkg.deps:
     - "@mynewt-timescale-lib/lib/timescale"
     - "@decawave-uwb-core/sys/uwbcfg"
     - "@decawave-uwb-core/lib/nmgr_uwb"
-    - "@decawave-uwb-apps/lib/bleprph"
+    # - "@decawave-uwb-apps/lib/bleprph"
     - "@decawave-uwb-apps/lib/rtdoa_backhaul"
 
 pkg.cflags:

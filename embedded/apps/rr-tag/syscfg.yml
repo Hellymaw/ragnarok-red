@@ -1,12 +1,14 @@
 syscfg.vals:
-    OS_MAIN_STACK_SIZE: 512
+    OS_MAIN_STACK_SIZE: 1024
     MSYS_1_BLOCK_COUNT: 32
     MSYS_1_BLOCK_SIZE: 128
     HARDFLOAT: 1
     FLOAT_USER: 0
     OS_SYSVIEW: 0
-    LOG_LEVEL: 2
-
+    LOG_LEVEL: 0
+    
+    BLEPRPH_ENABLED: 0
+    
     # Route console to RTT
     CONSOLE_UART: 1
     CONSOLE_RTT: 0
@@ -59,6 +61,22 @@ syscfg.vals:
     CONFIG_NEWTMGR: 1
     CONFIG_FCB_FLASH_AREA: FLASH_AREA_NFFS
 
+    # MESH
+    BLE_MESH: 1
+    BLE_MESH_CFG_CLI: 1
+    # Change this between devices
+    BLE_MESH_DEV_UUID: "((uint8_t[16]){0xaa, 0xdd, 0})"
+    
+    BLE_MESH_ADV_BUF_COUNT: 20
+    BLE_MESH_TX_SEG_MAX: 6
+    BLE_MESH_TX_SEG_MSG_COUNT: 3
+    BLE_MESH_RX_SEG_MSG_COUNT: 3
+    BLE_MESH_CRPL: 128
+    BLE_MESH_RPL_STORE_TIMEOUT: 120
+    BLE_MESH_MSG_CACHE_SIZE: 100
+
+    
+
     # IMU
     I2C_1: 1
     ADC_0: 1
@@ -68,12 +86,6 @@ syscfg.vals:
 
     NCBWIFI_ESP_PASSTHROUGH: 0
     ESP12F_ENABLED: 0
-
-    BLEPRPH_LOG_ENABLE: 0
-    BLE_ROLE_BROADCASTER: 1
-    BLE_ROLE_CENTRAL: 0
-    BLE_ROLE_OBSERVER: 0
-    BLE_ROLE_PERIPHERAL: 1
 
 syscfg.defs:
     IMU_RATE:

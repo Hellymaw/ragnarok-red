@@ -42,6 +42,15 @@
 #include "mcu/mcu_sim.h"
 #endif
 
+#include "console/console.h"
+#include "mesh/mesh.h"
+
+#include "app_gpio.h"
+
+#include "mesh/ble_mesh.h"
+#include "mesh/device_composition.h"
+
+
 
 
 /**
@@ -59,6 +68,14 @@ main(int argc, char **argv)
 
     sysinit();
 
+    app_gpio_init();
+
+	init_pub();
+
+    // ble_hs_cfg.reset_cb = blemesh_on_reset;
+	// ble_hs_cfg.sync_cb = blemesh_on_sync;
+	// ble_hs_cfg.store_status_cb = ble_store_util_status_rr;
+
     //Init blink led task
     os_task_init(&led_task_init, "blink_led_task", blink_led_task, NULL, LED_TASK_PRIOR,
                  OS_WAIT_FOREVER, led_task_stack, LED_TASK_STACK_SIZE);
@@ -67,9 +84,12 @@ main(int argc, char **argv)
     os_task_init(&rtdoa_tag_task_init, "rtdoa_tag_task", rtdoa_tag_task, NULL, RTDOA_TAG_TASK_PRIOR,
                  OS_WAIT_FOREVER, rtdoa_tag_task_stack, RTDOA_TAG_TASK_STACK_SIZE);
 
+  
+
     while (1) {
         /* Wait one second */
         os_time_delay(OS_TICKS_PER_SEC);
+        // os_eventq_run(os_eventq_dflt_get());
     }
     assert(0);
     return rc;
