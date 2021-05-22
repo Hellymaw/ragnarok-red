@@ -23,6 +23,7 @@ struct tag_ranges ranges3 = {
     .r2 = 0x6000
 };
 
+// TODO: Use this??
 // Have the TIDs been randomised
 static bool is_randomisation_of_TIDs_done;
 
@@ -39,24 +40,10 @@ static struct onoff_state onoff_server_led = {
 static struct bt_mesh_cfg_srv config_server = {
 	.relay = BT_MESH_RELAY_ENABLED,
 	.beacon = BT_MESH_BEACON_ENABLED,
-
-#if defined(CONFIG_BT_MESH_FRIEND)
-	.frnd = BT_MESH_FRIEND_ENABLED,
-#else
-	.frnd = BT_MESH_FRIEND_NOT_SUPPORTED,
-#endif
-
-#if defined(CONFIG_BT_MESH_GATT_PROXY)
 	.gatt_proxy = BT_MESH_GATT_PROXY_ENABLED,
-#else
-	.gatt_proxy = BT_MESH_GATT_PROXY_NOT_SUPPORTED,
-#endif
-
 	.default_ttl = 7,
-
 	/* 2 transmissions with 20ms interval */
 	.net_transmit = BT_MESH_TRANSMIT(2, 20),
-
 	/* 3 transmissions with 20ms interval */
 	.relay_retransmit = BT_MESH_TRANSMIT(3, 20),
 };
@@ -72,18 +59,12 @@ static struct bt_mesh_model_pub gen_onoff_server_pub;
 static struct bt_mesh_model_pub vnd_range_server_pub_1;
 static struct bt_mesh_model_pub vnd_range_server_pub_2;
 static struct bt_mesh_model_pub vnd_range_server_pub_3;
-static struct bt_mesh_model_pub vnd_range_client_pub_1;
-static struct bt_mesh_model_pub vnd_range_client_pub_2;
-static struct bt_mesh_model_pub vnd_range_client_pub_3;
 
 static struct os_mbuf *bt_mesh_pub_msg_health_pub;
 static struct os_mbuf *bt_mesh_pub_msg_gen_onoff_server_pub;
 static struct os_mbuf *bt_mesh_pub_msg_vnd_range_server_pub_1;
 static struct os_mbuf *bt_mesh_pub_msg_vnd_range_server_pub_2;
 static struct os_mbuf *bt_mesh_pub_msg_vnd_range_server_pub_3;
-static struct os_mbuf *bt_mesh_pub_msh_vnd_range_client_pub_1;
-static struct os_mbuf *bt_mesh_pub_msh_vnd_range_client_pub_2;
-static struct os_mbuf *bt_mesh_pub_msh_vnd_range_client_pub_3;
 
 /**
  * @brief Initialise and configure publisher buffers
@@ -98,9 +79,6 @@ void init_pub(void)
     bt_mesh_pub_msg_vnd_range_server_pub_1 = NET_BUF_SIMPLE(3 + 4 + 4);
     bt_mesh_pub_msg_vnd_range_server_pub_2 = NET_BUF_SIMPLE(3 + 4 + 4);
     bt_mesh_pub_msg_vnd_range_server_pub_3 = NET_BUF_SIMPLE(3 + 4 + 4);
-    bt_mesh_pub_msh_vnd_range_client_pub_1 = NET_BUF_SIMPLE(3 + 4 + 4);
-    bt_mesh_pub_msh_vnd_range_client_pub_2 = NET_BUF_SIMPLE(3 + 4 + 4);
-    bt_mesh_pub_msh_vnd_range_client_pub_3 = NET_BUF_SIMPLE(3 + 4 + 4);
 
     // Configure buffers
     health_pub.msg = bt_mesh_pub_msg_health_pub;
@@ -108,9 +86,6 @@ void init_pub(void)
     vnd_range_server_pub_1.msg = bt_mesh_pub_msg_vnd_range_server_pub_1;
     vnd_range_server_pub_2.msg = bt_mesh_pub_msg_vnd_range_server_pub_2;
     vnd_range_server_pub_3.msg = bt_mesh_pub_msg_vnd_range_server_pub_3;
-    vnd_range_client_pub_1.msg = bt_mesh_pub_msh_vnd_range_client_pub_1;
-    vnd_range_client_pub_2.msg = bt_mesh_pub_msh_vnd_range_client_pub_2;
-    vnd_range_client_pub_3.msg = bt_mesh_pub_msh_vnd_range_client_pub_3;
 }
 
 
@@ -187,7 +162,7 @@ static void gen_onoff_get(struct bt_mesh_model *model, struct bt_mesh_msg_ctx
  * @param ctx Message context
  * @param buf Message data
  */
-void gen_onoff_set_unack(struct bt_mesh_model *model, struct bt_mesh_msg_ctx *ctx, struct os_mbuf *buf)
+static void gen_onoff_set_unack(struct bt_mesh_model *model, struct bt_mesh_msg_ctx *ctx, struct os_mbuf *buf)
 {
     struct os_mbuf *msg = model->pub->msg;
     struct onoff_state *state = model->user_data;
@@ -202,8 +177,8 @@ void gen_onoff_set_unack(struct bt_mesh_model *model, struct bt_mesh_msg_ctx *ct
 
     // TEST: this is to test the vnd_range_publish function, here so that a timer cb isn't required
     vnd_range_publish(&vnd_models[0]);
-    vnd_range_publish(&vnd_models_2[0]);
-    vnd_range_publish(&vnd_models_3[0]);
+    vnd_range_publish(&vnd_models[1]);
+    vnd_range_publish(&vnd_models[2]);
 
     /*
      * If a server has a publish address, it is required to
@@ -275,21 +250,6 @@ static void vnd_range_get(struct bt_mesh_model *model, struct bt_mesh_msg_ctx *c
     os_mbuf_free_chain(msg);
 }
 
-/**
- * @brief Vendor range info client status message handler
- * 
- * @param model Calling mesh model
- * @param ctx Message context
- * @param buf Message buffer
- */
-static void vnd_range_status(struct bt_mesh_model *model, struct bt_mesh_msg_ctx *ctx, struct os_mbuf *buf)
-{
-    printk("Acknowledgement from VND_RANGE_SERVER\n");
-    printk("Present r1:%ld, r2:%ld\n", (int32_t)net_buf_simple_pull_le32(buf), (int32_t)net_buf_simple_pull_le32(buf));
-}
-
-
-
 // TODO: Check min message length
 static const struct bt_mesh_model_op gen_onoff_server_opcodes[] = {
     {BT_MESH_MODEL_OP_2(0x82, 0x01), 0, gen_onoff_get},
@@ -300,11 +260,6 @@ static const struct bt_mesh_model_op gen_onoff_server_opcodes[] = {
 
 static const struct bt_mesh_model_op vnd_range_server_opcodes[] = {
     {VND_RANGE_MODEL_GET_OPCODE, 0, vnd_range_get},
-    BT_MESH_MODEL_OP_END
-};
-
-static const struct bt_mesh_model_op vnd_range_client_opcodes[] = {
-    {VND_RANGE_MODEL_STATUS_OPCODE, 8, vnd_range_status},
     BT_MESH_MODEL_OP_END
 };
 
@@ -319,17 +274,8 @@ struct bt_mesh_model root_models[] = {
 // TODO: Add extra models for other ranges
 struct bt_mesh_model vnd_models[] = {
     BT_MESH_MODEL_VND(CID_RUNTIME, 0x4001, vnd_range_server_opcodes, &vnd_range_server_pub_1, &ranges1),
-    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4002, vnd_range_client_opcodes, &vnd_range_client_pub_1, NULL),
-};
-
-struct bt_mesh_model vnd_models_2[] = {
-    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4001, vnd_range_server_opcodes, &vnd_range_server_pub_2, &ranges2),
-    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4002, vnd_range_client_opcodes, &vnd_range_client_pub_2, NULL)
-};
-
-struct bt_mesh_model vnd_models_3[] = {
-    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4001, vnd_range_server_opcodes, &vnd_range_server_pub_3, &ranges3),
-    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4002, vnd_range_client_opcodes, &vnd_range_client_pub_3, NULL)
+    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4002, vnd_range_server_opcodes, &vnd_range_server_pub_2, &ranges2),
+    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4003, vnd_range_server_opcodes, &vnd_range_server_pub_3, &ranges3),
 };
 
 struct bt_mesh_model *led_onoff_server = &root_models[2];
@@ -337,9 +283,7 @@ struct bt_mesh_model *led_onoff_server = &root_models[2];
 // Setup of device elements
 static struct bt_mesh_elem elements[] = {
     BT_MESH_ELEM(0, root_models, BT_MESH_MODEL_NONE),
-    BT_MESH_ELEM(0, BT_MESH_MODEL_NONE, vnd_models),
-    BT_MESH_ELEM(0, BT_MESH_MODEL_NONE, vnd_models_2),
-    BT_MESH_ELEM(0, BT_MESH_MODEL_NONE, vnd_models_3)
+    BT_MESH_ELEM(0, BT_MESH_MODEL_NONE, vnd_models)
 };
 
 // Device mesh composition
