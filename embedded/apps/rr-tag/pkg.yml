@@ -53,7 +53,6 @@ pkg.deps:
     - "@mynewt-timescale-lib/lib/timescale"
     - "@decawave-uwb-core/sys/uwbcfg"
     - "@decawave-uwb-core/lib/nmgr_uwb"
-    # - "@decawave-uwb-apps/lib/bleprph"
     - "@decawave-uwb-apps/lib/rtdoa_backhaul"
 
 pkg.cflags:

@@ -29,8 +29,8 @@
 
 #include "app_gpio.h"
 
-#include "mesh/ble_mesh.h"
-#include "mesh/device_composition.h"
+// #include "mesh/ble_mesh.h"
+// #include "mesh/device_composition.h"
 
 /**
  * @brief Initialises GPIO

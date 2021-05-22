@@ -37,16 +37,18 @@
 #include "hal/hal_gpio.h"
 #include "hal/hal_bsp.h"
 #include <hal/hal_system.h>
-#include "rr_tag.h"
+
 #ifdef ARCH_sim
 #include "mcu/mcu_sim.h"
 #endif
 
+#include "rtdoa/rr_tag.h"
+
 #include "console/console.h"
 #include "mesh/mesh.h"
 
-#include "app_gpio.h"
-#include "heartbeat_led.h"
+#include "gpio/app_gpio.h"
+#include "gpio/heartbeat_led.h"
 
 #include "mesh/ble_mesh.h"
 #include "mesh/device_composition.h"
@@ -65,8 +67,7 @@
 int
 main(int argc, char **argv)
 {
-    int rc;
-
+    
     sysinit();
 
     app_gpio_init();
@@ -78,21 +79,23 @@ main(int argc, char **argv)
 	ble_hs_cfg.store_status_cb = ble_store_util_status_rr;
 
     //Init blink led task
-    os_task_init(&heartbeat_led_task_init, "heartbeat_led_task", heartbeat_led_task, NULL, HEART_LED_TASK_PRIORITY,
-                 OS_WAIT_FOREVER, heartbeat_led_task_stack, HEART_LED_TASK_STACK_SIZE);
+    os_task_init(&heartbeat_led_task_init, "heartbeat_led_task", 
+            heartbeat_led_task, NULL, HEARTBEAT_LED_TASK_PRIORITY, 
+            OS_WAIT_FOREVER, heartbeat_led_task_stack, 
+            HEARTBEAT_LED_TASK_STACK_SIZE);
 
     //Init RTDOA tag task
-    os_task_init(&rtdoa_tag_task_init, "rtdoa_tag_task", rtdoa_tag_task, NULL, RTDOA_TAG_TASK_PRIOR,
-                 OS_WAIT_FOREVER, rtdoa_tag_task_stack, RTDOA_TAG_TASK_STACK_SIZE);
+    os_task_init(&rtdoa_tag_task_init, "rtdoa_tag_task", rtdoa_tag_task, NULL, 
+            RTDOA_TAG_TASK_PRIOR, OS_WAIT_FOREVER, rtdoa_tag_task_stack, 
+            RTDOA_TAG_TASK_STACK_SIZE);
 
   
     while (1) {
-        /* Wait one second */
-        // os_time_delay(OS_TICKS_PER_SEC);
+
         os_eventq_run(os_eventq_dflt_get());
     }
-    assert(0);
-    return rc;
+    
+    return 0;
 }
 
 
