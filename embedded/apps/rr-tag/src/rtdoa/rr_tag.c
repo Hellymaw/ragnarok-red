@@ -83,7 +83,33 @@ struct uwbcfg_cbs uwb_cb = {
     .uc_update = uwb_config_upd_cb
 };
 
-uint8_t get_node_index(int node);
+/**
+ * @brief Return a node LUT index from a given slave node address.
+ *        This address is based on MAC and will not change (unique per slave)
+ * 
+ * @param nodeAddr slave nodes unique address
+ * @return uint8_t LUT index val
+ */
+uint8_t get_node_index(int nodeAddr) {
+
+    switch(nodeAddr) {
+        case SLAVE_NODE1_ID:
+            return 1;
+        case SLAVE_NODE2_ID:
+            return 2;
+        case SLAVE_NODE3_ID:
+            return 3;
+        case SLAVE_NODE4_ID:
+            return 4;
+        case SLAVE_NODE5_ID:
+            return 5;
+        case SLAVE_NODE6_ID:
+            return 6;
+        default:
+            //Should not be here
+            return -1;
+    }
+}
 
 /**
  * @brief Function to handle a tag packet, this is called in rtdoa_backhaul.c
@@ -93,7 +119,7 @@ uint8_t get_node_index(int node);
  * @param p 
  */
 void rr_tag_packet(struct rtdoabh_tag_results_pkg *p) {
-    //TODO Figure out wtf is going on with this ranging nonsense
+ 
     // printf("--------\n");
     for (int i=0;i<p->num_ranges;i++) {
         struct rtdoabh_range_data *r = &p->ranges[i];
@@ -104,7 +130,7 @@ void rr_tag_packet(struct rtdoabh_tag_results_pkg *p) {
         //TODO Dont print masters range
         if (r->anchor_addr != MASTER_NODE_ID) {
            //printf("Node [%x] -> %s%d.%03d\n", r->anchor_addr,(sign)?"":"-", abs(ddist_m), ddist_mm);
-        //    printf("Node [%x] : %d.%03d\n", r->anchor_addr,abs(ddist_m), ddist_mm);
+            //printf("Node [%x] : %d.%03d\n", r->anchor_addr,abs(ddist_m), ddist_mm);
             switch (get_node_index(r->anchor_addr)) {
             case 1:
                 ranges1.r1 = ddist_mm;
