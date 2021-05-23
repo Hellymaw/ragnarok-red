@@ -52,6 +52,8 @@
 
 #include "rr_tag.h"
 
+#include "mesh/device_composition.h"
+
 static bool uwb_config_updated = false;
 
 /**
@@ -81,6 +83,7 @@ struct uwbcfg_cbs uwb_cb = {
     .uc_update = uwb_config_upd_cb
 };
 
+uint8_t get_node_index(int node);
 
 /**
  * @brief Function to handle a tag packet, this is called in rtdoa_backhaul.c
@@ -91,7 +94,7 @@ struct uwbcfg_cbs uwb_cb = {
  */
 void rr_tag_packet(struct rtdoabh_tag_results_pkg *p) {
     //TODO Figure out wtf is going on with this ranging nonsense
-    printf("--------\n");
+    // printf("--------\n");
     for (int i=0;i<p->num_ranges;i++) {
         struct rtdoabh_range_data *r = &p->ranges[i];
         //int sign = (r->diff_dist_mm > 0);
@@ -101,10 +104,35 @@ void rr_tag_packet(struct rtdoabh_tag_results_pkg *p) {
         //TODO Dont print masters range
         if (r->anchor_addr != MASTER_NODE_ID) {
            //printf("Node [%x] -> %s%d.%03d\n", r->anchor_addr,(sign)?"":"-", abs(ddist_m), ddist_mm);
-           printf("Node [%x] : %d.%03d\n", r->anchor_addr,abs(ddist_m), ddist_mm);
+        //    printf("Node [%x] : %d.%03d\n", r->anchor_addr,abs(ddist_m), ddist_mm);
+            switch (get_node_index(r->anchor_addr)) {
+            case 1:
+                ranges1.r1 = ddist_mm;
+                break;
+            case 2:
+                ranges1.r2 = ddist_mm;
+                break;
+            case 3:
+                ranges2.r1 = ddist_mm;
+                break;
+            case 4:
+                ranges2.r2 = ddist_mm;
+                break;
+            case 5:
+                ranges3.r1 = ddist_mm;
+                break;
+            case 6:
+                ranges3.r2 = ddist_mm;
+                break;
+            default:
+                break;
+            }
         }
     }
-    printf("--------\n");
+    vnd_range_publish(&vnd_models[0]);
+    vnd_range_publish(&vnd_models[1]);
+    vnd_range_publish(&vnd_models[2]);
+    // printf("--------\n");
 }
 
 

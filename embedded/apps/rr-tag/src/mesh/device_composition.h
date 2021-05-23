@@ -30,14 +30,16 @@ extern struct tag_ranges ranges3;
 extern struct bt_mesh_model root_models[];
 
 extern struct bt_mesh_model vnd_models[];
-extern struct bt_mesh_model vnd_models_2[];
-extern struct bt_mesh_model vnd_models_3[];
+// extern struct bt_mesh_model vnd_models_2[];
+// extern struct bt_mesh_model vnd_models_3[];
 
 extern const struct bt_mesh_comp composition;
 
 void init_pub(void);
 
 void randomise_publishers_TID(void);
+
+void vnd_range_publish(struct bt_mesh_model *);
 
 // void gen_onoff_set_unack(struct bt_mesh_model *, struct bt_mesh_msg_ctx *, struct os_mbuf *);
 
