@@ -333,9 +333,6 @@ void rtdoa_node_task(void *arg) {
 
     udev->slot_id = 0xffff;
 
-
-    // ble_init(udev->my_long_address);
-
     struct uwb_ccp_instance *ccp = (struct uwb_ccp_instance *) uwb_mac_find_cb_inst_ptr(udev, UWBEXT_CCP);
     assert(ccp);
     struct uwb_pan_instance *pan = (struct uwb_pan_instance *) uwb_mac_find_cb_inst_ptr(udev, UWBEXT_PAN);
@@ -379,9 +376,8 @@ void rtdoa_node_task(void *arg) {
 #endif
 
     while(1) {
+
         os_time_delay(OS_TICKS_PER_SEC);
-        // dpl_eventq_run(dpl_eventq_dflt_get());
-        //printf("Node Slave\n");
     }
     assert(0);
     return;

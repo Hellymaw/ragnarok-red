@@ -3,9 +3,20 @@
 #include "console/console.h"
 #include "hal/hal_gpio.h"
 #include "bsp/bsp.h"
+#include <os/os.h>
 #include "mesh/mesh.h"
 
 #include "ble_mesh.h"
+
+struct os_sem receivedTagOne;
+struct os_sem receivedTagTwo;
+
+struct uwbData testingRangeT1 = {
+    .tagNum = 1,
+};
+struct uwbData testingRangeT2 = {
+    .tagNum = 2,
+};
 
 // Pins for LEDs used by onoff model
 static struct onoff_state onoff_server_led = {
@@ -35,21 +46,24 @@ static struct bt_mesh_elem elements[];
 // Publishers
 static struct bt_mesh_model_pub health_pub;
 static struct bt_mesh_model_pub gen_onoff_server_pub;
-static struct bt_mesh_model_pub vnd_range_client_pub_1;
-static struct bt_mesh_model_pub vnd_range_client_pub_2;
-static struct bt_mesh_model_pub vnd_range_client_pub_3;
-static struct bt_mesh_model_pub vnd_range_client_pub_4;
-static struct bt_mesh_model_pub vnd_range_client_pub_5;
-static struct bt_mesh_model_pub vnd_range_client_pub_6;
+
+static struct bt_mesh_model_pub vnd_range_client_pub_1_1;
+static struct bt_mesh_model_pub vnd_range_client_pub_1_2;
+static struct bt_mesh_model_pub vnd_range_client_pub_1_3;
+
+static struct bt_mesh_model_pub vnd_range_client_pub_2_1;
+static struct bt_mesh_model_pub vnd_range_client_pub_2_2;
+static struct bt_mesh_model_pub vnd_range_client_pub_2_3;
 
 static struct os_mbuf *bt_mesh_pub_msg_health_pub;
 static struct os_mbuf *bt_mesh_pub_msg_gen_onoff_server_pub;
-static struct os_mbuf *bt_mesh_pub_msh_vnd_range_client_pub_1;
-static struct os_mbuf *bt_mesh_pub_msh_vnd_range_client_pub_2;
-static struct os_mbuf *bt_mesh_pub_msh_vnd_range_client_pub_3;
-static struct os_mbuf *bt_mesh_pub_msh_vnd_range_client_pub_4;
-static struct os_mbuf *bt_mesh_pub_msh_vnd_range_client_pub_5;
-static struct os_mbuf *bt_mesh_pub_msh_vnd_range_client_pub_6;
+static struct os_mbuf *bt_mesh_pub_msh_vnd_range_client_pub_1_1;
+static struct os_mbuf *bt_mesh_pub_msh_vnd_range_client_pub_1_2;
+static struct os_mbuf *bt_mesh_pub_msh_vnd_range_client_pub_1_3;
+
+static struct os_mbuf *bt_mesh_pub_msh_vnd_range_client_pub_2_1;
+static struct os_mbuf *bt_mesh_pub_msh_vnd_range_client_pub_2_2;
+static struct os_mbuf *bt_mesh_pub_msh_vnd_range_client_pub_2_3;
 
 /**
  * @brief Initialise and configure publisher buffers
@@ -61,24 +75,42 @@ void init_pub(void)
     // Initialise buffers
     bt_mesh_pub_msg_health_pub = NET_BUF_SIMPLE(1 + 3 + 0);
     bt_mesh_pub_msg_gen_onoff_server_pub = NET_BUF_SIMPLE(2 + 2);
-    bt_mesh_pub_msh_vnd_range_client_pub_1 = NET_BUF_SIMPLE(3 + 4 + 4);
-    bt_mesh_pub_msh_vnd_range_client_pub_2 = NET_BUF_SIMPLE(3 + 4 + 4);
-    bt_mesh_pub_msh_vnd_range_client_pub_3 = NET_BUF_SIMPLE(3 + 4 + 4);
-    bt_mesh_pub_msh_vnd_range_client_pub_4 = NET_BUF_SIMPLE(3 + 4 + 4);
-    bt_mesh_pub_msh_vnd_range_client_pub_5 = NET_BUF_SIMPLE(3 + 4 + 4);
-    bt_mesh_pub_msh_vnd_range_client_pub_6 = NET_BUF_SIMPLE(3 + 4 + 4);
+
+    bt_mesh_pub_msh_vnd_range_client_pub_1_1 = NET_BUF_SIMPLE(3 + 4 + 4);
+    bt_mesh_pub_msh_vnd_range_client_pub_1_2 = NET_BUF_SIMPLE(3 + 4 + 4);
+    bt_mesh_pub_msh_vnd_range_client_pub_1_3 = NET_BUF_SIMPLE(3 + 4 + 4);
+    
+    bt_mesh_pub_msh_vnd_range_client_pub_2_1 = NET_BUF_SIMPLE(3 + 4 + 4);
+    bt_mesh_pub_msh_vnd_range_client_pub_2_2 = NET_BUF_SIMPLE(3 + 4 + 4);
+    bt_mesh_pub_msh_vnd_range_client_pub_2_3 = NET_BUF_SIMPLE(3 + 4 + 4);
 
     // Configure buffers
     health_pub.msg = bt_mesh_pub_msg_health_pub;
     gen_onoff_server_pub.msg = bt_mesh_pub_msg_gen_onoff_server_pub;
-    vnd_range_client_pub_1.msg = bt_mesh_pub_msh_vnd_range_client_pub_1;
-    vnd_range_client_pub_2.msg = bt_mesh_pub_msh_vnd_range_client_pub_2;
-    vnd_range_client_pub_3.msg = bt_mesh_pub_msh_vnd_range_client_pub_3;
-    vnd_range_client_pub_4.msg = bt_mesh_pub_msh_vnd_range_client_pub_4;
-    vnd_range_client_pub_5.msg = bt_mesh_pub_msh_vnd_range_client_pub_5;
-    vnd_range_client_pub_6.msg = bt_mesh_pub_msh_vnd_range_client_pub_6;
+
+    vnd_range_client_pub_1_1.msg = bt_mesh_pub_msh_vnd_range_client_pub_1_1;
+    vnd_range_client_pub_1_2.msg = bt_mesh_pub_msh_vnd_range_client_pub_1_2;
+    vnd_range_client_pub_1_3.msg = bt_mesh_pub_msh_vnd_range_client_pub_1_3;
+
+    vnd_range_client_pub_2_1.msg = bt_mesh_pub_msh_vnd_range_client_pub_2_1;
+    vnd_range_client_pub_2_2.msg = bt_mesh_pub_msh_vnd_range_client_pub_2_2;
+    vnd_range_client_pub_2_3.msg = bt_mesh_pub_msh_vnd_range_client_pub_2_3;
 }
 
+uint8_t init_subscriber_sems(void)
+{
+    int ret;
+
+    ret = os_sem_init(&receivedTagOne, 0);
+    if (ret) {
+
+        return ret;
+    }
+
+    ret = os_sem_init(&receivedTagTwo, 0);
+
+    return ret;
+}
 
 /**
  * @brief Generic onoff model 'get' message handler
@@ -180,9 +212,42 @@ static void gen_onoff_set(struct bt_mesh_model *model,
 static void vnd_range_status(struct bt_mesh_model *model, struct bt_mesh_msg_ctx *ctx, struct os_mbuf *buf)
 {
 
-    // TODO: Change this to actual output or something
-    printk("Acknowledgement from 0x%02x\n", bt_mesh_model_elem(model)->addr);
-    printk("Present r1:%ld, r2:%ld\n", (int32_t)net_buf_simple_pull_le32(buf), (int32_t)net_buf_simple_pull_le32(buf));
+    int32_t r1 = (int32_t)net_buf_simple_pull_le32(buf);
+    int32_t r2 = (int32_t)net_buf_simple_pull_le32(buf);
+
+    switch (model->groups[0] & 0x000F) {
+    case 0:
+        testingRangeT1.r1 = r1;
+        testingRangeT1.r2 = r2;
+        break;
+    case 1:
+        testingRangeT1.r3 = r1;
+        testingRangeT1.r4 = r2;
+        break;
+    case 2:
+        testingRangeT1.r5 = r1;
+        testingRangeT1.r6 = r2;
+
+        os_sem_release(&receivedTagOne);
+        break;
+    case 3:
+        testingRangeT2.r1 = r1;
+        testingRangeT2.r2 = r2;
+        break;
+    case 4:
+        testingRangeT2.r3 = r1;
+        testingRangeT2.r4 = r2;
+        break;
+    case 5:
+        testingRangeT2.r5 = r1;
+        testingRangeT2.r6 = r2;
+
+        os_sem_release(&receivedTagTwo);
+        break;
+    default:
+        break;
+
+    }
 }
 
 static const struct bt_mesh_model_op gen_onoff_server_opcodes[] = {
@@ -205,16 +270,17 @@ struct bt_mesh_model root_models[] = {
 };
 
 struct bt_mesh_model vnd_models_1[] = {
-    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4100, vnd_range_client_opcodes, &vnd_range_client_pub_1, NULL),
-    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4200, vnd_range_client_opcodes, &vnd_range_client_pub_2, NULL),
-    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4302, vnd_range_client_opcodes, &vnd_range_client_pub_3, NULL),
+    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4100, vnd_range_client_opcodes, &vnd_range_client_pub_1_1, NULL),
+    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4200, vnd_range_client_opcodes, &vnd_range_client_pub_1_2, NULL),
+    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4302, vnd_range_client_opcodes, &vnd_range_client_pub_1_3, NULL),
 };
 
 struct bt_mesh_model vnd_models_2[] = {
-    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4100, vnd_range_client_opcodes, &vnd_range_client_pub_4, NULL),
-    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4200, vnd_range_client_opcodes, &vnd_range_client_pub_5, NULL),
-    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4302, vnd_range_client_opcodes, &vnd_range_client_pub_6, NULL),
+    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4100, vnd_range_client_opcodes, &vnd_range_client_pub_2_1, NULL),
+    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4200, vnd_range_client_opcodes, &vnd_range_client_pub_2_2, NULL),
+    BT_MESH_MODEL_VND(CID_RUNTIME, 0x4302, vnd_range_client_opcodes, &vnd_range_client_pub_2_3, NULL),
 };
+
 
 struct bt_mesh_model *led_onoff_server = &root_models[2];
 

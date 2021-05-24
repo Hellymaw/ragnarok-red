@@ -50,6 +50,40 @@
 #include "mesh/ble_mesh.h"
 #include "mesh/device_composition.h"
 
+#define SERIAL_OUTPUT_TASK_PRIORITY 7
+#define SERIAL_OUTPUT_TASK_STACK_SIZE 128
+
+struct os_task serial_output_task_task;
+os_stack_t serial_output_task_stack[SERIAL_OUTPUT_TASK_STACK_SIZE];
+
+
+/**
+ * @brief Task to output received blemesh data over UART
+ * 
+ * @param arg N/A
+ */
+void serial_output_task(void *arg)
+{
+    struct uwbData data = {0};
+
+    while (1) {
+
+        if (os_sem_pend(&receivedTagOne, os_time_ms_to_ticks32(100)) == OS_OK) {
+
+            data = testingRangeT1;
+
+            printf("%d,%ld,%ld,%ld,%ld,%ld,%ld\n", data.tagNum, data.r1, data.r2, data.r3, data.r4, data.r5, data.r6);
+        }
+
+        if (os_sem_pend(&receivedTagTwo, os_time_ms_to_ticks32(100)) == OS_OK) {
+
+            data = testingRangeT2;
+
+            printf("%d,%ld,%ld,%ld,%ld,%ld,%ld\n", data.tagNum, data.r1, data.r2, data.r3, data.r4, data.r5, data.r6);
+        }
+    }
+}
+
 /**
  * main
  *
@@ -68,10 +102,14 @@ main(int argc, char **argv)
 
 	init_pub();
 
+    init_subscriber_sems();
+
     // Initialize the NimBLE host configuration.
 	ble_hs_cfg.reset_cb = blemesh_on_reset;
 	ble_hs_cfg.sync_cb = blemesh_on_sync;
 	ble_hs_cfg.store_status_cb = ble_store_util_status_rr;
+
+    // init_timer();
 
     //Init blink led task
     os_task_init(&heartbeat_led_task_init, "heartbeat_led_task", 
@@ -79,7 +117,11 @@ main(int argc, char **argv)
             OS_WAIT_FOREVER, heartbeat_led_task_stack, 
             HEARTBEAT_LED_TASK_STACK_SIZE);
 
-    
+    os_task_init(&serial_output_task_task, "range_serial_output", 
+            serial_output_task, NULL, SERIAL_OUTPUT_TASK_PRIORITY, 
+            OS_WAIT_FOREVER, serial_output_task_stack, 
+            SERIAL_OUTPUT_TASK_STACK_SIZE);
+
     //Init RTDOA Node task
     os_task_init(&rtdoa_node_task_init, "rtdoa_node_task", rtdoa_node_task, 
             NULL, RTDOA_NODE_TASK_PRIORITY, OS_WAIT_FOREVER, 
