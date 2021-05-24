@@ -38,7 +38,7 @@ extern struct os_sem receivedTagTwo;
 
 extern struct uwbData testingRangeT1;
 
-extern struct myTest testingRangeT2;
+extern struct uwbData testingRangeT2;
 
 extern struct bt_mesh_model *led_onoff_server;
 
