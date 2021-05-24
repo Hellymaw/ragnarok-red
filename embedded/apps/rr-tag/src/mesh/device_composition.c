@@ -7,29 +7,29 @@
 
 #include "ble_mesh.h"
 
-// TODO: fix this
+// Ranges for slave 1 & 2
 struct tag_ranges ranges1 = {
     .r1 = 0x1001,
     .r2 = 0x2000
 };
 
+// Ranges for slave 3 & 4
 struct tag_ranges ranges2 = {
     .r1 = 0x3001,
     .r2 = 0x4000
 };
 
+// Ranges for slave 5 & 6
 struct tag_ranges ranges3 = {
     .r1 = 0x5001,
     .r2 = 0x6000
 };
 
-// TODO: Use this??
 // Have the TIDs been randomised
 static bool is_randomisation_of_TIDs_done;
 
 // TID for vnd_range publishing
 static uint8_t tid_vnd_range;
-
 
 // Pins for LEDs used by onoff model
 static struct onoff_state onoff_server_led = {
@@ -51,6 +51,7 @@ static struct bt_mesh_cfg_srv config_server = {
 // Device mesh health server
 static struct bt_mesh_health_srv health_server = {};
 
+// Device elements
 static struct bt_mesh_elem elements[];
 
 // Publishers
@@ -60,6 +61,7 @@ static struct bt_mesh_model_pub vnd_range_server_pub_1;
 static struct bt_mesh_model_pub vnd_range_server_pub_2;
 static struct bt_mesh_model_pub vnd_range_server_pub_3;
 
+// Buffers for publishers
 static struct os_mbuf *bt_mesh_pub_msg_health_pub;
 static struct os_mbuf *bt_mesh_pub_msg_gen_onoff_server_pub;
 static struct os_mbuf *bt_mesh_pub_msg_vnd_range_server_pub_1;
@@ -71,8 +73,7 @@ static struct os_mbuf *bt_mesh_pub_msg_vnd_range_server_pub_3;
  */
 void init_pub(void)
 {
-    // TODO: figure out what sizes mean
-    // TODO: Change sizes
+    
     // Initialise buffers
     bt_mesh_pub_msg_health_pub = NET_BUF_SIMPLE(1 + 3 + 0);
     bt_mesh_pub_msg_gen_onoff_server_pub = NET_BUF_SIMPLE(2 + 2);
@@ -94,6 +95,7 @@ void init_pub(void)
  */
 void randomise_publishers_TID(void)
 {
+
 	bt_rand(&tid_vnd_range, sizeof(tid_vnd_range));
 
 	is_randomisation_of_TIDs_done = true;
@@ -120,6 +122,7 @@ void vnd_range_publish(struct bt_mesh_model *model)
     net_buf_simple_add_le32(msg, ranges->r1);
     net_buf_simple_add_le32(msg, ranges->r2);
 
+    // Attempt to publish status message
     err = bt_mesh_model_publish(model);
     if (err) {
 
@@ -174,11 +177,6 @@ static void gen_onoff_set_unack(struct bt_mesh_model *model, struct bt_mesh_msg_
     BT_INFO("addr 0x%02x state 0x%02x");
 
     hal_gpio_write(state->led_gpio_pin, (state->current) ? 0 : 1);
-
-    // TEST: this is to test the vnd_range_publish function, here so that a timer cb isn't required
-    vnd_range_publish(&vnd_models[0]);
-    vnd_range_publish(&vnd_models[1]);
-    vnd_range_publish(&vnd_models[2]);
 
     /*
      * If a server has a publish address, it is required to
@@ -250,7 +248,7 @@ static void vnd_range_get(struct bt_mesh_model *model, struct bt_mesh_msg_ctx *c
     os_mbuf_free_chain(msg);
 }
 
-// TODO: Check min message length
+// Opcodes for Generic OnOff Server model
 static const struct bt_mesh_model_op gen_onoff_server_opcodes[] = {
     {BT_MESH_MODEL_OP_2(0x82, 0x01), 0, gen_onoff_get},
     {BT_MESH_MODEL_OP_2(0x82, 0x02), 2, gen_onoff_set},
@@ -258,6 +256,7 @@ static const struct bt_mesh_model_op gen_onoff_server_opcodes[] = {
     BT_MESH_MODEL_OP_END
 };
 
+// Opcodes for Vendor Range Server model
 static const struct bt_mesh_model_op vnd_range_server_opcodes[] = {
     {VND_RANGE_MODEL_GET_OPCODE, 0, vnd_range_get},
     BT_MESH_MODEL_OP_END
@@ -270,14 +269,14 @@ struct bt_mesh_model root_models[] = {
     BT_MESH_MODEL(BT_MESH_MODEL_ID_GEN_ONOFF_SRV, gen_onoff_server_opcodes, &gen_onoff_server_pub, &onoff_server_led),
 };
 
-// TODO: Setup variable
-// TODO: Add extra models for other ranges
+// Vendor Models for element 2
 struct bt_mesh_model vnd_models[] = {
     BT_MESH_MODEL_VND(CID_RUNTIME, 0x4001, vnd_range_server_opcodes, &vnd_range_server_pub_1, &ranges1),
     BT_MESH_MODEL_VND(CID_RUNTIME, 0x4002, vnd_range_server_opcodes, &vnd_range_server_pub_2, &ranges2),
     BT_MESH_MODEL_VND(CID_RUNTIME, 0x4003, vnd_range_server_opcodes, &vnd_range_server_pub_3, &ranges3),
 };
 
+// Setup LED OnOff server
 struct bt_mesh_model *led_onoff_server = &root_models[2];
 
 // Setup of device elements

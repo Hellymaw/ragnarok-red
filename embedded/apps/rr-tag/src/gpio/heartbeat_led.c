@@ -14,11 +14,13 @@
 void heartbeat_led_task(void *arg) 
 {
 
+    // Initialise heartbeat LED
     hal_gpio_init_out(LED_4, 1);
 
     while(1) {
+
+        // 2 Hz toggle
         os_time_delay(OS_TICKS_PER_SEC/2);
-        /* Toggle the LED */
         hal_gpio_toggle(LED_4);
     }
 }

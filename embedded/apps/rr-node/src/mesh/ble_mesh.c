@@ -29,11 +29,16 @@
 #include "ble_mesh.h"
 #include "device_composition.h"
 
+// Output OOB number
+static int output_number(bt_mesh_output_action_t, uint32_t);
 
-static int output_number(bt_mesh_output_action_t, u32_t);
+// Output OOB string
 static int output_string(const char *);
 
-static void prov_complete(u16_t net_idx, u16_t addr);
+// Provisioning complete callback
+static void prov_complete(uint16_t net_idx, uint16_t addr);
+
+// Reset provisioning callback
 static void prov_reset(void);
 
 // Devices UUID
@@ -57,6 +62,7 @@ static const struct bt_mesh_prov prov = {
  */
 static int output_number(bt_mesh_output_action_t action, u32_t number)
 {
+
 	printk("OOB Number: %lu\n", number);
 	return 0;
 }
@@ -66,6 +72,7 @@ static int output_number(bt_mesh_output_action_t action, u32_t number)
  */
 static int output_string(const char *str)
 {
+
 	printk("OOB String: %s\n", str);
 	return 0;
 }
@@ -78,13 +85,8 @@ static int output_string(const char *str)
  */
 static void prov_complete(u16_t net_idx, u16_t addr)
 {
+
 	printk("Local node provisioned, primary address 0x%04x\n", addr);
-	
-	// NOTE: These variables are likely not set on reset
-	// NOTE: These are used in another file, likely unnecessary
-	// Save the index and address
-	// primary_addr = addr;
-	// primary_net_idx = net_idx;
 }
 
 /**
@@ -92,6 +94,7 @@ static void prov_complete(u16_t net_idx, u16_t addr)
  */
 static void prov_reset(void)
 {
+
 	bt_mesh_prov_enable(BT_MESH_PROV_ADV | BT_MESH_PROV_GATT);
 }
 
@@ -102,6 +105,7 @@ static void prov_reset(void)
  */
 void blemesh_on_reset(int reason)
 {
+
 	BLE_HS_LOG(ERROR, "Resetting state; reason=%d\n", reason);
 }
 
@@ -110,6 +114,7 @@ void blemesh_on_reset(int reason)
  */
 void blemesh_on_sync(void)
 {
+	
 	int err;
 	ble_addr_t addr;
 

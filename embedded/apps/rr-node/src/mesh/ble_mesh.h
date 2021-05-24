@@ -33,7 +33,6 @@
 // Enable Out Of Band authentification
 #define OOB_AUTH_ENABLE 1
 
-// NOTE: These are removed as `device_composition.c` uses BT_MESH_MODEL_OP_2 directly
 // Model Operation Codes for Generic ONOFF
 #define BT_MESH_MODEL_OP_GEN_ONOFF_GET		BT_MESH_MODEL_OP_2(0x82, 0x01)
 #define BT_MESH_MODEL_OP_GEN_ONOFF_SET		BT_MESH_MODEL_OP_2(0x82, 0x02)

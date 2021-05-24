@@ -53,21 +53,37 @@
 #include "mesh/ble_mesh.h"
 #include "mesh/device_composition.h"
 
-
+// OS timer to publish tag range information
 struct os_callout tag_publish_timer;
 
+/**
+ * @brief Handler for tag publishing timer
+ * 
+ * @param dummy 
+ */
 static void tag_publish_timer_handler(struct os_event *dummy)
 {
+    // Publish all ranging information and reset timer
     vnd_range_publish(&vnd_models[0]);
     vnd_range_publish(&vnd_models[1]);
     vnd_range_publish(&vnd_models[2]);
-    os_callout_reset(&tag_publish_timer, os_time_ms_to_ticks32(1000));
+
+    os_callout_reset(&tag_publish_timer, os_time_ms_to_ticks32(250));
 }
 
+/**
+ * @brief Initialise publishing timer
+ * 
+ */
 static void init_timer(void)
 {
-    os_callout_init(&tag_publish_timer, os_eventq_dflt_get(), tag_publish_timer_handler, NULL);
-    os_callout_reset(&tag_publish_timer, os_time_ms_to_ticks32(1000));
+
+    // Initialise timer
+    os_callout_init(&tag_publish_timer, os_eventq_dflt_get(), 
+            tag_publish_timer_handler, NULL);
+
+    // Start timer
+    os_callout_reset(&tag_publish_timer, os_time_ms_to_ticks32(250));
 }
 
 /**
@@ -82,16 +98,21 @@ int
 main(int argc, char **argv)
 {
     
+    // Initialise OS
     sysinit();
 
+    // Intialise GPIO
     app_gpio_init();
 
+    // Initialise publisher buffers
 	init_pub();
 
+    // Setup BLE mesh callbacks
     ble_hs_cfg.reset_cb = blemesh_on_reset;
 	ble_hs_cfg.sync_cb = blemesh_on_sync;
 	ble_hs_cfg.store_status_cb = ble_store_util_status_rr;
 
+    // Initialise publisher timer
     init_timer();
 
     //Init blink led task
@@ -107,7 +128,7 @@ main(int argc, char **argv)
 
   
     while (1) {
-
+        // Get top of OS event queue and run
         os_eventq_run(os_eventq_dflt_get());
     }
     

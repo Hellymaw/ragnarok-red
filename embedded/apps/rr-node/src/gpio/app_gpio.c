@@ -29,16 +29,12 @@
 
 #include "app_gpio.h"
 
-// #include "mesh/ble_mesh.h"
-// #include "mesh/device_composition.h"
-
-
 /**
  * @brief Initialises GPIO
  */
 void app_gpio_init(void)
 {
-	/* LEDs configiuratin & setting */
+	// LEDs configiuratin & setting
 	hal_gpio_init_out(LED_1, 1);
 }
 
