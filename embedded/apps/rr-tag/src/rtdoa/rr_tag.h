@@ -11,10 +11,10 @@
 #define MASTER_NODE_ID 0xc439
 
 //TODO: Update these value to match respective slaves Addrs
-#define SLAVE_NODE1_ID 0x01
-#define SLAVE_NODE2_ID 0x02
-#define SLAVE_NODE3_ID 0x03
-#define SLAVE_NODE4_ID 0x04
+#define SLAVE_NODE1_ID 0x8817
+#define SLAVE_NODE2_ID 0x28BB
+#define SLAVE_NODE3_ID 0xCBB3
+#define SLAVE_NODE4_ID 0x5132
 #define SLAVE_NODE5_ID 0x05
 #define SLAVE_NODE6_ID 0x06
 
