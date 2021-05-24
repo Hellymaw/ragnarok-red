@@ -29,10 +29,6 @@
 #include "ble_mesh.h"
 #include "device_composition.h"
 
-// uint16_t primary_addr;
-// uint16_t primary_net_idx;
-
-
 static int output_number(bt_mesh_output_action_t, u32_t);
 static int output_string(const char *);
 static void prov_complete(u16_t net_idx, u16_t addr);

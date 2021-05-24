@@ -120,50 +120,35 @@ uint8_t get_node_index(int nodeAddr) {
  */
 void rr_tag_packet(struct rtdoabh_tag_results_pkg *p) {
  
-    // printf("--------\n");
-    printf(" 1"); //Print Tag ID
     for (int i=0;i<p->num_ranges;i++) {
         struct rtdoabh_range_data *r = &p->ranges[i];
-        //int sign = (r->diff_dist_mm > 0);
-        float ddist_m  = r->diff_dist_mm/1000;
-        int ddist_mm = abs(r->diff_dist_mm - ddist_m*1000);
-
-        //TODO Dont print masters range
+        
         if (r->anchor_addr != MASTER_NODE_ID) {
-           //printf("Node [%x] -> %s%d.%03d\n", r->anchor_addr,(sign)?"":"-", abs(ddist_m), ddist_mm);
-            //printf("Node [%x] : %d.%03d\n", r->anchor_addr,abs(ddist_m), ddist_mm);
-
-            printf(",%x,%d.%03d,-73", r->anchor_addr, abs(ddist_m), ddist_mm); //nodeID, ddist, RSSI
-
+           
             switch (get_node_index(r->anchor_addr)) {
             case 1:
-                ranges1.r1 = ddist_mm;
+                ranges1.r1 = r->diff_dist_mm;
                 break;
             case 2:
-                ranges1.r2 = ddist_mm;
+                ranges1.r2 = r->diff_dist_mm;
                 break;
             case 3:
-                ranges2.r1 = ddist_mm;
+                ranges2.r1 = r->diff_dist_mm;
                 break;
             case 4:
-                ranges2.r2 = ddist_mm;
+                ranges2.r2 = r->diff_dist_mm;
                 break;
             case 5:
-                ranges3.r1 = ddist_mm;
+                ranges3.r1 = r->diff_dist_mm;
                 break;
             case 6:
-                ranges3.r2 = ddist_mm;
+                ranges3.r2 = r->diff_dist_mm;
                 break;
             default:
                 break;
             }
         }
     }
-    printf(" \n");
-    vnd_range_publish(&vnd_models[0]);
-    vnd_range_publish(&vnd_models[1]);
-    vnd_range_publish(&vnd_models[2]);
-    // printf("--------\n");
 }
 
 
