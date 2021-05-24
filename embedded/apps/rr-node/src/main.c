@@ -53,8 +53,37 @@
 #define SERIAL_OUTPUT_TASK_PRIORITY 7
 #define SERIAL_OUTPUT_TASK_STACK_SIZE 128
 
+#define SLAVE_NODE1_ID 0x8817
+#define SLAVE_NODE2_ID 0x28BB
+#define SLAVE_NODE3_ID 0xCBB3
+#define SLAVE_NODE4_ID 0x5132
+#define SLAVE_NODE5_ID 0x256A
+#define SLAVE_NODE6_ID 0x19AB
+
 struct os_task serial_output_task_task;
 os_stack_t serial_output_task_stack[SERIAL_OUTPUT_TASK_STACK_SIZE];
+
+
+uint16_t get_node_addr(uint8_t nodeIndex)
+{
+    switch (nodeIndex) {
+    case 1:
+        return SLAVE_NODE1_ID;
+    case 2:
+        return SLAVE_NODE2_ID;
+    case 3:
+        return SLAVE_NODE3_ID;
+    case 4:
+        return SLAVE_NODE4_ID;
+    case 5:
+        return SLAVE_NODE5_ID;
+    case 6:
+        return SLAVE_NODE6_ID;
+    default:
+        break;
+    }
+    return 0;
+}
 
 
 /**
@@ -72,14 +101,14 @@ void serial_output_task(void *arg)
 
             data = testingRangeT1;
 
-            printf("%d,%ld,%ld,%ld,%ld,%ld,%ld\n", data.tagNum, data.r1, data.r2, data.r3, data.r4, data.r5, data.r6);
+            printf("%d,%x,%ld,-73,%x,%ld,-73,%x,%ld,-73,%x,%ld,-73,%x,%ld,-73\n", data.tagNum, get_node_addr(1), data.r1, get_node_addr(2), data.r2, get_node_addr(3), data.r3, get_node_addr(4), data.r4, get_node_addr(5), data.r5);
         }
 
         if (os_sem_pend(&receivedTagTwo, os_time_ms_to_ticks32(100)) == OS_OK) {
 
             data = testingRangeT2;
 
-            printf("%d,%ld,%ld,%ld,%ld,%ld,%ld\n", data.tagNum, data.r1, data.r2, data.r3, data.r4, data.r5, data.r6);
+            printf("%d,%x,%ld,-73,%x,%ld,-73,%x,%ld,-73,%x,%ld,-73,%x,%ld,-73\n", data.tagNum, get_node_addr(1), data.r1, get_node_addr(2), data.r2, get_node_addr(3), data.r3, get_node_addr(4), data.r4, get_node_addr(5), data.r5);
         }
     }
 }

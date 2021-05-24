@@ -15,8 +15,8 @@
 #define SLAVE_NODE2_ID 0x28BB
 #define SLAVE_NODE3_ID 0xCBB3
 #define SLAVE_NODE4_ID 0x5132
-#define SLAVE_NODE5_ID 0x05
-#define SLAVE_NODE6_ID 0x06
+#define SLAVE_NODE5_ID 0x256A
+#define SLAVE_NODE6_ID 0x19AB
 
 
 struct os_task rtdoa_tag_task_init;
