@@ -1,5 +1,13 @@
+/**
+ ************************************************************************
+ * @file device_composition.c
+ * @author Aaron Helmore
+ * @date 24.05.2021 (Last Updated)
+ * @brief Contains BLE mesh device composition configuration code. 
+ * @note Used for an anchor node 
+ **********************************************************************
+ **/
 #include "device_composition.h"
-
 #include "console/console.h"
 #include "hal/hal_gpio.h"
 #include "bsp/bsp.h"

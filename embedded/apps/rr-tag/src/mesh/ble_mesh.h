@@ -24,6 +24,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+/**
+ ************************************************************************
+ * @file ble_mesh.h
+ * @author Aaron Helmore
+ * @date 19.05.2021 (Last Updated)
+ * @brief Contains BLE mesh callback functions definitions
+ * @note Used for a tag node
+ **********************************************************************
+ **/
+
+
 #ifndef _BLE_MESH_H
 #define _BLE_MESH_H
 

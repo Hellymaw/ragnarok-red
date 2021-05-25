@@ -1,3 +1,14 @@
+
+/**
+ ************************************************************************
+ * @file rr_tag.h
+ * @author Wilfred MK
+ * @date 19.05.2021 (Last Updated)
+ * @brief Contains required declarations for an rr_tag
+ **********************************************************************
+ **/
+
+
 #ifndef RR_TAG_H
 #define RR_TAG_H
 

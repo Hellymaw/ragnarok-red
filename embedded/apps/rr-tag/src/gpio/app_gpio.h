@@ -23,6 +23,14 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+/**
+ ************************************************************************
+ * @file app_gpio.h
+ * @author Aaron Helmore
+ * @date 24.05.2021 (Last Updated)
+ * @brief Initializes a GPIO Led pin
+ **********************************************************************
+ **/
 
 #ifndef _APP_GPIO_H
 #define _APP_GPIO_H

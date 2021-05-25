@@ -1,3 +1,13 @@
+/**
+ ************************************************************************
+ * @file device_composition.h
+ * @author Aaron Helmore
+ * @date 24.05.2021 (Last Updated)
+ * @brief Contains BLE mesh device composition configuration code and 
+ *          respective declarations. 
+ * @note Used for an anchor node
+ **********************************************************************
+ **/
 #ifndef NEW_DEV_COMP_H
 #define NEW_DEV_COMP_H
 

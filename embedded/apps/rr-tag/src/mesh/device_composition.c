@@ -1,3 +1,13 @@
+/**
+ ************************************************************************
+ * @file device_composition.c
+ * @author Aaron Helmore
+ * @date 24.05.2021 (Last Updated)
+ * @brief Contains BLE mesh device composition configuration code. 
+ * @note Used for an tag node
+ **********************************************************************
+ **/
+
 #include "device_composition.h"
 
 #include "console/console.h"

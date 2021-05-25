@@ -1,3 +1,12 @@
+/**
+ ************************************************************************
+ * @file heartbeat_led.h
+ * @author Aaron Helmore
+ * @date 24.05.2021 (Last Updated)
+ * @brief Contains heardbeat task declarations.
+ **********************************************************************
+ **/
+
 #ifndef HEARTBEAT_LED_H
 #define HEARTBEAT_LED_H
 

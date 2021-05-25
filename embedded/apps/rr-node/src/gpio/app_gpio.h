@@ -23,6 +23,14 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+/**
+ ************************************************************************
+ * @file app_gpio.h
+ * @author Aaron Helmore
+ * @date 24.05.2021 (Last Updated)
+ * @brief Contains respective declarations for a heartbeat task. 
+ **********************************************************************
+ **/
 
 #ifndef _APP_GPIO_H
 #define _APP_GPIO_H

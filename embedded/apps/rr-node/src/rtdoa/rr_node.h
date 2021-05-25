@@ -1,3 +1,13 @@
+
+/**
+ ************************************************************************
+ * @file rr_node.h
+ * @author Wilfred MK
+ * @date 19.05.2021 (Last Updated)
+ * @brief Contains required definitions for a node task. 
+ **********************************************************************
+ **/
+
 #ifndef RR_NODE_H
 #define RR_NODE_H
 

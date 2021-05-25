@@ -1,3 +1,12 @@
+/**
+ ************************************************************************
+ * @file heartbeat_led.c
+ * @author Aaron Helmore
+ * @date 24.05.2021 (Last Updated)
+ * @brief Contains a task that will blink the heartbeat LED.
+ **********************************************************************
+ **/
+
 #include "heartbeat_led.h"
 
 #include "os/os.h"

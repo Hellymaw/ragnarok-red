@@ -23,6 +23,15 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+/**
+ ************************************************************************
+ * @file ble_mesh.h
+ * @author Aaron Helmore
+ * @date 19.05.2021 (Last Updated)
+ * @brief Contain BLE mesh required declarations
+ * @note Used for an anchor node
+ **********************************************************************
+ **/
 
 #ifndef _BLE_MESH_H
 #define _BLE_MESH_H
