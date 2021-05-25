@@ -25,6 +25,7 @@ pkg.homepage: "https://decawave.com/"
 pkg.keywords:
   - dw1000
   - rtdoa
+  - blemesh
 
 pkg.deps:
     - "@apache-mynewt-core/kernel/os"

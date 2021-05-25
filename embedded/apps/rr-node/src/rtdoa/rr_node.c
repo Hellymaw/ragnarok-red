@@ -323,7 +323,7 @@ static void tdma_allocate_slots(tdma_instance_t * tdma)
     assert(pan);
     tdma_assign_slot(tdma, uwb_pan_slot_timer_cb, 1, (void*)pan);
 
-    /* anchor-to-anchor range slot is 31 */
+    // anchor-to-anchor range slot is 31
     struct nrng_instance * nrng = (struct nrng_instance *)uwb_mac_find_cb_inst_ptr(inst, UWBEXT_NRNG);
     assert(nrng);
     tdma_assign_slot(tdma, nrng_slot_timer_cb, 31, (void*)nrng);
@@ -357,7 +357,8 @@ static void tdma_allocate_slots(tdma_instance_t * tdma)
  * 
  * @param arg N/A
  */
-void rtdoa_node_task(void *arg) {
+void rtdoa_node_task(void *arg) 
+{
 
     // Initialise LED that indicates UWB activity/sync
     hal_gpio_init_out(LED_BLINK_PIN, 1);
@@ -456,5 +457,5 @@ void rtdoa_node_task(void *arg) {
         os_time_delay(OS_TICKS_PER_SEC);
     }
     
-    return 0;
+    return;
 }

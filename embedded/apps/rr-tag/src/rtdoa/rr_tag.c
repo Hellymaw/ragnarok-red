@@ -47,13 +47,13 @@
 
 #include "mesh/mesh.h"
 #include "mesh/ble_mesh.h"
-
 #include <rtdoa_backhaul/rtdoa_backhaul.h>
 
 #include "rr_tag.h"
 
 #include "mesh/device_composition.h"
 
+// Has the UWB config been updated already
 static bool uwb_config_updated = false;
 
 /**
@@ -67,18 +67,27 @@ static int uwb_config_upd_cb()
      * wrong radio settings */
     struct uwb_dev *inst = uwb_dev_idx_lookup(0);
     struct uwb_ccp_instance *ccp = (struct uwb_ccp_instance*)uwb_mac_find_cb_inst_ptr(inst, UWBEXT_CCP);
+
+    // If no released semaphores and status is not valid, reconfigure
     if (dpl_sem_get_count(&ccp->sem) == 0 || !ccp->status.valid) {
+    
         uwb_mac_config(inst, NULL);
         uwb_txrf_config(inst, &inst->config.txrf);
+    
+        // Start receiving with UWB if no semaphores
         if (dpl_sem_get_count(&ccp->sem) == 0) {
+    
             uwb_start_rx(inst);
         }
         return 0;
     }
+
+    // Config was updated
     uwb_config_updated = true;
     return 0;
 }
 
+// Set UWB config update callback
 struct uwbcfg_cbs uwb_cb = {
     .uc_update = uwb_config_upd_cb
 };
@@ -118,13 +127,18 @@ uint8_t get_node_index(int nodeAddr) {
  * 
  * @param p 
  */
-void rr_tag_packet(struct rtdoabh_tag_results_pkg *p) {
+void rr_tag_packet(struct rtdoabh_tag_results_pkg *p) 
+{
  
-    for (int i=0;i<p->num_ranges;i++) {
+    // Get ranges for all connected slaves
+    for (int i = 0; i < p->num_ranges; i++) {
+
         struct rtdoabh_range_data *r = &p->ranges[i];
         
+        // Don't save range if master
         if (r->anchor_addr != MASTER_NODE_ID) {
            
+            // Save range to correct Vendor Range Model
             switch (get_node_index(r->anchor_addr)) {
             case 1:
                 ranges1.r1 = r->diff_dist_mm;
@@ -153,13 +167,14 @@ void rr_tag_packet(struct rtdoabh_tag_results_pkg *p) {
 
 
 /**
- * @fn rtdoa_slot_timer_cb(struct dpl_event * ev)
+ * @brief RTDoA Emission slot
  *
- * @brief RTDoA Subscription slot
- *
+ * DISCLAIMER: This is manufacturer code and does arcane magic
+ * 
  */
 static void rtdoa_slot_timer_cb(struct dpl_event *ev)
 {
+
     assert(ev);
     tdma_slot_t * slot = (tdma_slot_t *) dpl_event_get_arg(ev);
     tdma_instance_t * tdma = slot->parent;
@@ -167,36 +182,49 @@ static void rtdoa_slot_timer_cb(struct dpl_event *ev)
     struct uwb_dev * inst = tdma->dev_inst;
     uint16_t idx = slot->idx;
     struct rtdoa_instance * rtdoa = (struct rtdoa_instance*)slot->arg;
-    //printf("idx%d\n", idx);
-
+    
     /* Avoid colliding with the ccp */
     if (dpl_sem_get_count(&ccp->sem) == 0) {
+    
         return;
     }
+    
     hal_gpio_write(LED_BLINK_PIN,1);
+    
     uint64_t dx_time = tdma_rx_slot_start(tdma, idx);
-    if(rtdoa_listen(rtdoa, UWB_BLOCKING, dx_time, 3*ccp->period/tdma->nslots/4).start_rx_error) {
+    
+    // Try get a packet from a slave
+    if(rtdoa_listen(rtdoa, UWB_BLOCKING, dx_time, 
+            3*ccp->period/tdma->nslots/4).start_rx_error) {
+        
         printf("#rse\n");
     }
+    
     hal_gpio_write(LED_BLINK_PIN,0);
 
     if (dpl_sem_get_count(&ccp->sem) == 0) {
+    
         return;
     }
+    
     uint64_t measurement_ts = uwb_wcs_local_to_master64(ccp->wcs, dx_time);
     rtdoa_backhaul_set_ts(measurement_ts>>16);
+    
     //This Causes a callback through the backend to rr_tag_packet
-    rtdoa_backhaul_send(inst, rtdoa, 0); //tdma_tx_slot_start(inst, idx+2)
-    //printf("idx%de\n", idx);
+    rtdoa_backhaul_send(inst, rtdoa, 0);
 }
 
 /**
- * @brief Slot timer callback
+ * @brief NewtMGR slot timer callback
+ *        I think this is used for over the air upgrade but I'm unsure
  * 
- * @param ev  callback event
+ * DISCLAIMER: This is manufacturer code and does arcane magic
+ * 
+ * @param ev NewtMGR event
  */
 static void nmgr_slot_timer_cb(struct dpl_event * ev)
 {
+
     assert(ev);
     tdma_slot_t * slot = (tdma_slot_t *) dpl_event_get_arg(ev);
     tdma_instance_t * tdma = slot->parent;
@@ -205,48 +233,61 @@ static void nmgr_slot_timer_cb(struct dpl_event * ev)
     uint16_t idx = slot->idx;
     nmgr_uwb_instance_t * nmgruwb = (nmgr_uwb_instance_t *)slot->arg;
     assert(nmgruwb);
-    // printf("idx %02d nmgr\n", idx);
-
+    
+    // If UWB config was updated, setup configs
     if (uwb_config_updated) {
+
         uwb_mac_config(inst, NULL);
         uwb_txrf_config(inst, &inst->config.txrf);
         uwb_config_updated = false;
     }
 
-    /* Avoid colliding with the ccp */
+    // Avoid colliding with the ccp
     if (dpl_sem_get_count(&ccp->sem) == 0) {
+        
         return;
     }
 
-    if (uwb_nmgr_process_tx_queue(nmgruwb, tdma_tx_slot_start(tdma, idx)) == false) {
-        nmgr_uwb_listen(nmgruwb, UWB_BLOCKING, tdma_rx_slot_start(tdma, idx),
-             3*ccp->period/tdma->nslots/4);
+    if (uwb_nmgr_process_tx_queue(nmgruwb, tdma_tx_slot_start(tdma, idx)) == 
+            false) {
+        
+        nmgr_uwb_listen(nmgruwb, UWB_BLOCKING, tdma_rx_slot_start(tdma, idx), 
+                 3*ccp->period/tdma->nslots/4);
     }
 }
 
 /**
- * @brief Allocates TDMA Slots to device
+ * @brief Allocate TDMA Slots
  * 
- * @param tdma 
+ * DISCLAIMER: This is manufacturer code and does arcane magic
+ * 
+ * @param TDMA instance
  */
 static void tdma_allocate_slots(tdma_instance_t * tdma)
 {
+
     uint16_t i;
-    /* Pan for anchors is in slot 1 */
+    
+    // Pan for anchors is in slot 1 
     struct uwb_dev * inst = tdma->dev_inst;
     nmgr_uwb_instance_t *nmgruwb = (nmgr_uwb_instance_t*)uwb_mac_find_cb_inst_ptr(inst, UWBEXT_NMGR_UWB);
     assert(nmgruwb);
     struct rtdoa_instance * rtdoa = (struct rtdoa_instance*)uwb_mac_find_cb_inst_ptr(inst, UWBEXT_RTDOA);
     assert(rtdoa);
 
-    /* anchor-to-anchor range slot is 31 */
-    for (i=2;i < MYNEWT_VAL(TDMA_NSLOTS);i++) {
-        if (i==31) {
+    // anchor-to-anchor range slot is 31
+    for (i = 2; i < MYNEWT_VAL(TDMA_NSLOTS); i++) {
+        
+        if (i == 31) {
+        
             continue;
         }
-        if (i%12==0) {
+        
+        if (i % 12 == 0) {
+        
             tdma_assign_slot(tdma, nmgr_slot_timer_cb, i, nmgruwb);
         } else {
+        
             tdma_assign_slot(tdma, rtdoa_slot_timer_cb, i, rtdoa);
         }
     }
@@ -254,55 +295,62 @@ static void tdma_allocate_slots(tdma_instance_t * tdma)
 
 
 /**
- * @brief Primary thread that will carry out RTDOA functionality.
+ * @brief Primary thread that will carry out RTDOA node functionality,
+ *        based on build command, this will build for either a slave
+ *        or a master node. 
  * 
- * @param arg 
+ * @param arg N/A
  */
-void rtdoa_tag_task(void *arg) {
-    //Setup UWB
+void rtdoa_tag_task(void *arg) 
+{
+    
     hal_gpio_init_out(LED_BLINK_PIN, 1);
+    
+    // Register a configuration callback and load configuration
     uwbcfg_register(&uwb_cb);
     conf_load();
 
+    // Get UWB device pointer
     struct uwb_dev *udev = uwb_dev_idx_lookup(0);
 
+    // Setup UWB device configuration
     udev->config.rxauto_enable = 1;
     udev->config.trxoff_enable = 1;
     udev->config.rxdiag_enable = 1;
     udev->config.sleep_enable = 1;
     udev->config.dblbuffon_enabled = 0;
     uwb_set_dblrxbuff(udev, false);
-
     udev->slot_id = 0;
 
-#if MYNEWT_VAL(BLEPRPH_ENABLED)
-    printf("bleprph is enabled\n");
-#endif
-
-    // ble_init(udev->my_long_address);
-
+    // Print some useful UWB device info
     printf("{\"device_id\"=\"%lX\"",udev->device_id);
     printf(",\"panid=\"%X\"",udev->pan_id);
     printf(",\"addr\"=\"%X\"",udev->uid);
     printf(",\"part_id\"=\"%lX\"",(uint32_t)(udev->euid&0xffffffff));
     printf(",\"lot_id\"=\"%lX\"}\n",(uint32_t)(udev->euid>>32));
 
+    // Get CCP instance
     struct uwb_ccp_instance * ccp = (struct uwb_ccp_instance*)uwb_mac_find_cb_inst_ptr(udev, UWBEXT_CCP);
     assert(ccp);
+
+    // Get next TDMA instance
     tdma_instance_t * tdma = (tdma_instance_t*)uwb_mac_find_cb_inst_ptr(udev, UWBEXT_TDMA);
     assert(tdma);
 
+    // Allocate TDMA slots
     tdma_allocate_slots(tdma);
+
+    // Start looking for CCP 
     uwb_ccp_start(ccp, CCP_ROLE_SLAVE);
+
+    // Set role in the RTDoA network
     rtdoa_backhaul_set_role(udev, RTDOABH_ROLE_BRIDGE);
 
-
     while(1) {
-        // dpl_eventq_run(dpl_eventq_dflt_get());
+        
         os_time_delay(OS_TICKS_PER_SEC);
     }
 
-    assert(0);
     return;
 }
 

@@ -7,6 +7,7 @@ syscfg.vals:
     OS_SYSVIEW: 0
     LOG_LEVEL: 2
     
+    # Disable the BLEPRPH in the rtdoa code
     BLEPRPH_ENABLED: 0
 
     # Route console to RTT
@@ -18,7 +19,7 @@ syscfg.vals:
     CONSOLE_ECHO: 1
     CONSOLE_HISTORY_SIZE: 4
 
-    # Shell
+    # Shell configuration
     SHELL_TASK: 0
     SHELL_PROMPT_MODULE: 0
     SHELL_NEWTMGR: 0
@@ -30,7 +31,7 @@ syscfg.vals:
     DW1000_CLI: 1
     BCAST_OTA_CLI: 0
 
-    # UWB
+    # UWB configuration
     UWB_DEVICE_0: 1
     DW1000_DEV_TASK_STACK_SZ: 256
     UWB_PKG_INIT_LOG: 1
@@ -54,13 +55,13 @@ syscfg.vals:
     OS_LATENCY: 2000
     XTALT_GUARD: 0x60
 
-    # Config interface
+    # Persistent config interface
     CONFIG_NFFS: 0
     CONFIG_FCB: 1
     CONFIG_NEWTMGR: 1
     CONFIG_FCB_FLASH_AREA: FLASH_AREA_NFFS
 
-    # MESH
+    # Mesh settings
     BLE_MESH: 1
     BLE_MESH_CFG_CLI: 1
     # Change this between devices
@@ -73,20 +74,3 @@ syscfg.vals:
     BLE_MESH_CRPL: 128
     BLE_MESH_RPL_STORE_TIMEOUT: 120
     BLE_MESH_MSG_CACHE_SIZE: 100
-
-    
-
-#     # IMU
-#     I2C_1: 1
-#     ADC_0: 1
-#     LSM6DSL_ONB: 1
-#     LIS2MDL_ONB: 1
-#     LPS22HB_ONB: 1
-
-#     NCBWIFI_ESP_PASSTHROUGH: 0
-#     ESP12F_ENABLED: 0
-
-# syscfg.defs:
-#     IMU_RATE:
-#       description: 'Rate at which to print IMU data to UART. Set to 0 to disable'
-#       value: 80
