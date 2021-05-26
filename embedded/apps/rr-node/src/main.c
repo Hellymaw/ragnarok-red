@@ -16,22 +16,120 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+/**
+ ************************************************************************
+ * @file main.c
+ * @author Wilfred MK
+ * @date 19.05.2021 (Last Updated)
+ * @brief Main entry this, initialises aux tasks. 
+ **********************************************************************
+ **/
 
 #include <assert.h>
 #include <string.h>
-
+#include <stdio.h>
+#include <math.h>
 #include "sysinit/sysinit.h"
 #include "os/os.h"
 #include "bsp/bsp.h"
+#include "imgmgr/imgmgr.h"
 #include "hal/hal_gpio.h"
+#include "hal/hal_bsp.h"
+#include <hal/hal_system.h>
 #ifdef ARCH_sim
 #include "mcu/mcu_sim.h"
 #endif
 
-static volatile int g_task1_loops;
+#include "rtdoa/rr_node.h"
 
-/* For LED toggling */
-int g_led_pin;
+#include "mesh/mesh.h"
+
+#include "gpio/app_gpio.h"
+#include "gpio/heartbeat_led.h"
+
+#include "mesh/ble_mesh.h"
+#include "mesh/device_composition.h"
+
+#define SERIAL_OUTPUT_TASK_PRIORITY 7
+#define SERIAL_OUTPUT_TASK_STACK_SIZE 128
+
+// Slave node addresses
+#define SLAVE_NODE1_ID 0x8817
+#define SLAVE_NODE2_ID 0x28BB
+#define SLAVE_NODE3_ID 0xC6B3
+#define SLAVE_NODE4_ID 0x5132
+#define SLAVE_NODE5_ID 0x256A
+#define SLAVE_NODE6_ID 0x19AB
+
+// Task to output data over serial
+struct os_task serial_output_task_task;
+
+// Stack for serial output task
+os_stack_t serial_output_task_stack[SERIAL_OUTPUT_TASK_STACK_SIZE];
+
+/**
+ * @brief Get the node address based off index
+ * 
+ * @param nodeIndex Index of the slave node
+ * @return uint16_t Address of the slave node
+ */
+uint16_t get_node_addr(uint8_t nodeIndex)
+{
+    // Return address of slave node or 0 if index is invalid
+    switch (nodeIndex) {
+    case 1:
+        return SLAVE_NODE1_ID;
+    case 2:
+        return SLAVE_NODE2_ID;
+    case 3:
+        return SLAVE_NODE3_ID;
+    case 4:
+        return SLAVE_NODE4_ID;
+    case 5:
+        return SLAVE_NODE5_ID;
+    case 6:
+        return SLAVE_NODE6_ID;
+    default:
+        break;
+    }
+    return 0;
+}
+
+
+/**
+ * @brief Task to output received blemesh data over UART
+ * 
+ * @param arg N/A
+ */
+void serial_output_task(void *arg)
+{
+    struct uwbData data = {0};
+
+    while (1) {
+
+        // If tag 1 has valid data, output it through serial console
+        if (os_sem_pend(&receivedTagOne, os_time_ms_to_ticks32(100)) == OS_OK) {
+
+            data = testingRangeT1;
+
+            printf("%d,%x,%ld,-73,%x,%ld,-73,%x,%ld,-73,%x,%ld,-73,%x,%ld,-73\n", 
+                    data.tagNum, get_node_addr(1), data.r1, get_node_addr(2), 
+                    data.r2, get_node_addr(3), data.r3, get_node_addr(4), 
+                    data.r4, get_node_addr(5), data.r5);
+        }
+
+        // If tag 2 has valid data, output it through serial console
+        if (os_sem_pend(&receivedTagTwo, os_time_ms_to_ticks32(100)) == OS_OK) {
+
+            data = testingRangeT2;
+
+            printf("%d,%x,%ld,-73,%x,%ld,-73,%x,%ld,-73,%x,%ld,-73,%x,%ld,-73\n", 
+                    data.tagNum, get_node_addr(1), data.r1, get_node_addr(2), 
+                    data.r2, get_node_addr(3), data.r3, get_node_addr(4), 
+                    data.r4, get_node_addr(5), data.r5);
+        }
+    }
+}
 
 /**
  * main
@@ -44,27 +142,45 @@ int g_led_pin;
 int
 main(int argc, char **argv)
 {
-    int rc;
-
-#ifdef ARCH_sim
-    mcu_sim_parse_args(argc, argv);
-#endif
-
+    
+    // Initialise OS
     sysinit();
 
-    g_led_pin = LED_BLINK_PIN;
-    hal_gpio_init_out(g_led_pin, 1);
+    // Initialise GPIO
+    app_gpio_init();
+
+    // Initialise BLE Mesh model buffers
+	init_pub();
+
+    // Initialise data arrived semaphores
+    init_subscriber_sems();
+
+    // Initialize the NimBLE host configuration.
+	ble_hs_cfg.reset_cb = blemesh_on_reset;
+	ble_hs_cfg.sync_cb = blemesh_on_sync;
+	ble_hs_cfg.store_status_cb = ble_store_util_status_rr;
+
+    // Intitialise heartbeat led task
+    os_task_init(&heartbeat_led_task_init, "heartbeat_led_task", 
+            heartbeat_led_task, NULL, HEARTBEAT_LED_TASK_PRIORITY, 
+            OS_WAIT_FOREVER, heartbeat_led_task_stack, 
+            HEARTBEAT_LED_TASK_STACK_SIZE);
+
+    // Initialise serial output task
+    os_task_init(&serial_output_task_task, "range_serial_output", 
+            serial_output_task, NULL, SERIAL_OUTPUT_TASK_PRIORITY, 
+            OS_WAIT_FOREVER, serial_output_task_stack, 
+            SERIAL_OUTPUT_TASK_STACK_SIZE);
+
+    // Initialise RTDOA Node task
+    os_task_init(&rtdoa_node_task_init, "rtdoa_node_task", rtdoa_node_task, 
+            NULL, RTDOA_NODE_TASK_PRIORITY, OS_WAIT_FOREVER, 
+            rtdoa_node_task_stack, RTDOA_NODE_TASK_STACK_SIZE);                 
 
     while (1) {
-        ++g_task1_loops;
-
-        /* Wait one second */
-        os_time_delay(OS_TICKS_PER_SEC);
-
-        /* Toggle the LED */
-        hal_gpio_toggle(g_led_pin);
+        // Get the top of the event queue and run it
+        os_eventq_run(os_eventq_dflt_get());
     }
-    assert(0);
-
-    return rc;
+    
+    return 0;
 }
